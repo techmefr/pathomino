@@ -122,7 +122,7 @@ class Pathomino extends React.Component {
 
   componentDidMount(){
     try{
-      this.setState({voleurUnlocked: localStorage.getItem('pm_voleur')==='1', best: parseInt(localStorage.getItem('pm_best')||'0',10), account:this.loadAccount(), muted: localStorage.getItem('pm_muted')==='1'});
+      this.setState({voleurUnlocked: localStorage.getItem('pm_voleur')==='1', mageUnlocked: localStorage.getItem('pm_mage')==='1', best: parseInt(localStorage.getItem('pm_best')||'0',10), account:this.loadAccount(), muted: localStorage.getItem('pm_muted')==='1'});
     }catch(e){}
     this._resize = ()=>this.setState({vw:window.innerWidth, vh:window.innerHeight});
     this._resize();
@@ -450,10 +450,11 @@ class Pathomino extends React.Component {
   floorComplete(){
     let st={}; const g=this.state.grid;
     if(g.boss){
-      const beaten=this.state.bossesBeaten+1; let bossIndex=this.state.bossIndex; let unlocked=this.state.voleurUnlocked; let newUnlock=false;
+      const beaten=this.state.bossesBeaten+1; let bossIndex=this.state.bossIndex; let unlocked=this.state.voleurUnlocked; let mageUnlocked=this.state.mageUnlocked; let newUnlock=false;
       if(this.BOSSES[bossIndex].key==='roi' && !unlocked){ unlocked=true; newUnlock=true; try{localStorage.setItem('pm_voleur','1');}catch(e){} }
+      if(this.BOSSES[bossIndex].key==='cavalier' && !mageUnlocked){ mageUnlocked=true; try{localStorage.setItem('pm_mage','1');}catch(e){} }
       bossIndex=Math.min(bossIndex+1,4);
-      st={bossesBeaten:beaten, bossIndex, gridN:Math.min(this.state.gridN+1,11), voleurUnlocked:unlocked, newUnlock,
+      st={bossesBeaten:beaten, bossIndex, gridN:Math.min(this.state.gridN+1,11), voleurUnlocked:unlocked, mageUnlocked, newUnlock,
           best:Math.max(this.state.best,beaten)};
       try{ localStorage.setItem('pm_best', String(Math.max(this.state.best,beaten))); }catch(e){}
     }
