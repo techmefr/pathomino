@@ -243,12 +243,26 @@ class Pathomino extends React.Component {
       if(taken.has(p.join(','))) continue;
       taken.add(p.join(',')); traps.push(p);
     }
+    const foodCount=Math.min(1+Math.floor(f/3),3);
+    const foods=[]; let fg=0;
+    while(foods.length<foodCount && fg++<200){
+      const p=[this.rnd(0,n-1),this.rnd(0,n-1)];
+      if(taken.has(p.join(','))) continue;
+      taken.add(p.join(',')); foods.push(p);
+    }
+    const potionCount=f<3?0:1;
+    const potions=[]; let pg=0;
+    while(potions.length<potionCount && pg++<200){
+      const p=[this.rnd(0,n-1),this.rnd(0,n-1)];
+      if(taken.has(p.join(','))) continue;
+      taken.add(p.join(',')); potions.push(p);
+    }
     let hand = [...(this.state.hand||[])];
     if(!firstFloor){
       for(let i=0;i<this.FLOOR_REFILL && hand.length<this.HAND_MAX;i++) hand.push(this.drawPiece());
     }
     this.setState({
-      grid:{n,start,key,door,pawns,boss,treasure,holes,traps}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR
+      grid:{n,start,key,door,pawns,boss,treasure,holes,traps,foods,potions}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR
     });
   }
   drawPiece(){
@@ -310,6 +324,11 @@ class Pathomino extends React.Component {
     const st={executing:true};
     const trapSet=new Set((g.traps||[]).map(t=>t.join(',')));
     if(Object.keys(m).some(k=>trapSet.has(k))) st.poisoned=true;
+    const foodSet=new Set((g.foods||[]).map(t=>t.join(',')));
+    const potionSet=new Set((g.potions||[]).map(t=>t.join(',')));
+    const foodHits=Object.keys(m).filter(k=>foodSet.has(k)).length;
+    if(foodHits>0){ st.php=Math.min(this.state.pmax, this.state.php+foodHits*12); }
+    if(Object.keys(m).some(k=>potionSet.has(k))) st.poisoned=false;
     if(g.treasure && m[g.treasure.join(',')]){
       const bonus=this.rnd(10,18);
       const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
@@ -701,14 +720,20 @@ class Pathomino extends React.Component {
       let bg='#13100e', bd=C.line, bstyle='solid';
       if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
         else { bg='#241f1a'; bd=C.line2; bstyle='dashed'; } }
+      if(isFood && !placed){ bg='rgba(160,50,50,.2)'; bd='#7a3a3a'; }
+      if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
       if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
       if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
       if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
       const isTreasure = g.treasure && this.eq(g.treasure,[r,c]);
       const isHole=(g.holes||[]).some(p=>this.eq(p,[r,c]));
       const isTrap=(g.traps||[]).some(p=>this.eq(p,[r,c]));
+      const isFood=(g.foods||[]).some(p=>this.eq(p,[r,c]));
+      const isPotion=(g.potions||[]).some(p=>this.eq(p,[r,c]));
       let content=null;
-      if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
+      if(isFood && !placed) content=h('span',{style:{fontSize:cell*.5,color:'#d96060',filter:'drop-shadow(0 0 3px rgba(220,80,80,.5))'}}, '\u2665');
+      else if(isPotion && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#a06ad0',filter:'drop-shadow(0 0 3px rgba(160,100,220,.5))'}}, '\u2697');
+      else if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
       else if(isTrap && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#5a9a5a',filter:'drop-shadow(0 0 3px rgba(80,180,80,.5))'}}, '\u2620');
       else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: m[k]?C.red:C.mut}}, '\u265F',
         (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, C.gold2)) : null);
