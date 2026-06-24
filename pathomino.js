@@ -209,7 +209,7 @@ class Pathomino extends React.Component {
     const hand = Array.from({length:ch.pieces}, ()=>this.drawPiece());
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
-      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], weapon:null, shop:null, hand, poisoned:false,
+      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], weapon:null, shop:null, hand, poisoned:false, portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false,
       showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(e){ return true; } })()
     }, ()=> this.genFloor(true));
   }
@@ -815,8 +815,8 @@ class Pathomino extends React.Component {
         onMouseEnter:()=>this.hoverCell(r,c),
         onClick:()=>{
           if(this.state.selectingPortal&&!this.state.executing){
-            if(!this.state.portalA){ this.setState({portalA:[r,c]}); return; }
-            if(!this.eq(this.state.portalA,[r,c])){ this.setState({portalB:[r,c],portalUsed:true,selectingPortal:false,portalRecharge:this.state.floor+2}); this.sfx('valid'); return; }
+            if(!this.state.portalA){ if(!isHole) this.setState({portalA:[r,c]}); return; }
+            if(!this.eq(this.state.portalA,[r,c])&&!isHole){ this.setState({portalB:[r,c],portalUsed:true,selectingPortal:false,portalRecharge:this.state.floor+2}); this.sfx('valid'); return; }
             return;
           }
           if(this.state.selPiece===null && m[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c);
