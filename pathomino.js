@@ -4,7 +4,7 @@ class Pathomino extends React.Component {
     const v = this.renderVals();
     return h('div', {id:'pm-root'},
       v.homeEl, v.authEl, v.selectEl, v.planEl,
-      v.combatEl, v.shopEl, v.resultEl, v.dragOverlay);
+      v.combatEl, v.shopEl, v.resultEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
   }
 
   C = {ink:'#0e0c0b',p1:'#1b1715',p2:'#241f1b',p3:'#2f2823',line:'#3a342e',line2:'#4c443b',text:'#ece4d6',mut:'#8d8377',gold:'#e0a53b',gold2:'#f3c976',red:'#cf5040',green:'#86b46a',blue:'#6f9bca'};
@@ -71,7 +71,8 @@ class Pathomino extends React.Component {
     php:100, pmax:100,
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
-    voleurUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0
+    voleurUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
+    showTuto:false, muted:false
   };
 
   loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
@@ -87,9 +88,38 @@ class Pathomino extends React.Component {
   playAsGuest(){ this.setState({account:{name:'Invité', guest:true}, screen:'select'}); }
   logout(){ try{ localStorage.removeItem('pm_account'); }catch(e){} this.setState({account:null, screen:'home', authName:'', authPass:'', authErr:''}); }
 
+  sfx(name){ if(this.state.muted) return;
+    try{
+      if(!this._ac){ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; this._ac=new AC(); }
+      const ac=this._ac; if(ac.state==='suspended') ac.resume(); const now=ac.currentTime;
+      const tone=(freq,dur,type,vol,delay)=>{ const o=ac.createOscillator(),g=ac.createGain();
+        o.type=type||'square'; o.frequency.value=freq; o.connect(g); g.connect(ac.destination);
+        const t=now+(delay||0); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.16,t+0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.03); };
+      const S={
+        select:()=>tone(440,0.04,'square',0.09),
+        place:()=>{tone(300,0.07,'square',0.14);tone(450,0.06,'square',0.10,0.03);},
+        rotate:()=>tone(560,0.05,'square',0.10),
+        bad:()=>tone(150,0.14,'sawtooth',0.15),
+        valid:()=>{tone(523,0.09,'triangle',0.15);tone(784,0.13,'triangle',0.15,0.09);},
+        hit:()=>{tone(220,0.09,'square',0.17);tone(110,0.13,'sawtooth',0.13,0.02);},
+        heal:()=>{tone(660,0.1,'triangle',0.14);tone(880,0.12,'triangle',0.12,0.08);},
+        hurt:()=>tone(190,0.15,'sawtooth',0.17),
+        coin:()=>{tone(988,0.06,'square',0.12);tone(1319,0.09,'square',0.11,0.05);},
+        buy:()=>{tone(700,0.07,'square',0.12);tone(1047,0.1,'square',0.11,0.06);},
+        win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,0.12,'triangle',0.15,i*0.08)),
+        over:()=>[440,330,247,165].forEach((f,i)=>tone(f,0.2,'sawtooth',0.15,i*0.15))
+      };
+      (S[name]||S.select)();
+    }catch(e){}
+  }
+  toggleMute(){ const m=!this.state.muted; try{ localStorage.setItem('pm_muted', m?'1':'0'); }catch(e){} this.setState({muted:m}); if(!m) this.sfx('select'); }
+  openTuto(){ this.setState({showTuto:true}); }
+  closeTuto(){ try{ localStorage.setItem('pm_tuto','1'); }catch(e){} this.setState({showTuto:false}); }
+
   componentDidMount(){
     try{
-      this.setState({voleurUnlocked: localStorage.getItem('pm_voleur')==='1', best: parseInt(localStorage.getItem('pm_best')||'0',10), account:this.loadAccount()});
+      this.setState({voleurUnlocked: localStorage.getItem('pm_voleur')==='1', best: parseInt(localStorage.getItem('pm_best')||'0',10), account:this.loadAccount(), muted: localStorage.getItem('pm_muted')==='1'});
     }catch(e){}
     this._resize = ()=>this.setState({vw:window.innerWidth, vh:window.innerHeight});
     this._resize();
@@ -144,10 +174,10 @@ class Pathomino extends React.Component {
     const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0});
-    this.markPlaced(cells); }
+    this.sfx('place'); this.markPlaced(cells); }
   markPlaced(cells){ const keys=cells.map(c=>c.join(',')); this.setState({justPlaced:keys});
     clearTimeout(this._jpT); this._jpT=setTimeout(()=>this.setState({justPlaced:[]}),360); }
-  rotate(){ this.setState(s=>({rot:(s.rot+1)%4})); }
+  rotate(){ this.sfx('rotate'); this.setState(s=>({rot:(s.rot+1)%4})); }
   miniPiece(key,rot,u,color){ const h=React.createElement; const shape=this.rotated(key,rot);
     const rows=Math.max(...shape.map(c=>c[0]))+1, cols=Math.max(...shape.map(c=>c[1]))+1;
     const sset=new Set(shape.map(c=>c.join(','))); const cs=[];
@@ -167,7 +197,8 @@ class Pathomino extends React.Component {
     const hand = Array.from({length:ch.pieces}, ()=>this.drawPiece());
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
-      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], shop:null, hand
+      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], shop:null, hand,
+      showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(e){ return true; } })()
     }, ()=> this.genFloor(true));
   }
   rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
@@ -220,11 +251,11 @@ class Pathomino extends React.Component {
     const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false});
-    this.markPlaced(cells);
+    this.sfx('place'); this.markPlaced(cells);
   }
   undo(){ const placed=[...this.state.placed]; const last=placed.pop(); if(!last)return;
     this.setState({placed, hand:[...this.state.hand, {uid:last.uid,key:last.key}]}); }
-  pickPiece(){ if(this.state.hand.length>=this.HAND_MAX)return; this.setState(s=>({hand:[...s.hand, this.drawPiece()]})); }
+  pickPiece(){ if(this.state.hand.length>=this.HAND_MAX)return; this.sfx('place'); this.setState(s=>({hand:[...s.hand, this.drawPiece()]})); }
 
   pathOk(){
     const g=this.state.grid; if(!g) return {ok:false};
@@ -243,6 +274,7 @@ class Pathomino extends React.Component {
 
   validate(){
     const chk=this.pathOk(); if(!chk.ok) return;
+    this.sfx('valid');
     const g=this.state.grid; const m=this.placedMap();
     const covered = g.pawns.filter(p=>m[p.join(',')]).sort((a,b)=>this.manhattan(g.start,a)-this.manhattan(g.start,b));
     this._queue = covered.map((p,i)=>this.makePawn(i));
@@ -348,7 +380,7 @@ class Pathomino extends React.Component {
     if(combo.spade){ spadeRed += combo.spade; }
     let deck=this.state.deck;
     this.addFloat('enemy', '-'+combo.dmg, this.C.gold2);
-    if(combo.heal) this.addFloat('hero','+'+combo.heal, this.C.green);
+    this.sfx('hit'); if(combo.heal){ this.sfx('heal'); this.addFloat('hero','+'+combo.heal, this.C.green); }
     let target=8+(combo.draw||0);
     const rf=this.refill(deck, discard, chand, Math.min(11,target)); deck=rf.deck; discard=rf.discard; chand=rf.hand;
     this.setState({chand, deck, discard, enemy, php, spadeRed, csel:[], hitFlash:(this.state.hitFlash||0)+1, log:`${combo.name} — ${combo.dmg} dégâts${combo.effect? ' · '+combo.effect:''}`});
@@ -372,18 +404,20 @@ class Pathomino extends React.Component {
       this.setState({busy:false, log:`${ch.name} esquive l'attaque !`}); return; }
     const raw = Math.max(1, (e.atk - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
     const php=Math.max(0, this.state.php - raw);
-    this.addFloat('hero','-'+raw, this.C.red); this.shakeEl('hero');
+    this.sfx('hurt'); this.addFloat('hero','-'+raw, this.C.red); this.shakeEl('hero');
     this.setState({php, busy:false, log:`${e.name} riposte — ${raw} dégâts`});
     if(php<=0){ setTimeout(()=>this.death(), 800); }
   }
   winCombat(){
     const e=this.state.enemy; const gold=this.state.gold + e.gold;
+    this.sfx(e.kind==='boss'?'win':'coin');
     this.addFloat('enemy','+'+e.gold+' or', this.C.gold);
     let st={gold, log:`${e.name} vaincu ! +${e.gold} or`};
     this.setState(st);
     setTimeout(()=>{ this.setState({screen:'plan'}); setTimeout(()=>this.advanceQueue(), 450); }, 1000);
   }
   death(){
+    this.sfx('over');
     const best=Math.max(this.state.best, this.state.bossesBeaten);
     try{ localStorage.setItem('pm_best', String(best)); }catch(e){}
     this.setState({screen:'result', best, lastBoss:'mort'});
@@ -417,7 +451,7 @@ class Pathomino extends React.Component {
     else if(cat==='cards'){ this.setState({deck:[...s.deck,{uid:Math.random().toString(36).slice(2),rank:o.rank,suit:o.suit}]}); }
     const shop={jokers:[...s.shop.jokers],pieces:[...s.shop.pieces],cards:[...s.shop.cards]};
     shop[cat]=shop[cat].map((x,j)=>j===i?{...x,sold:true}:x);
-    this.setState({gold:s.gold-o.price, shop});
+    this.sfx('buy'); this.setState({gold:s.gold-o.price, shop});
   }
   rerollShop(){ if(this.state.gold<5) return; this.setState({gold:this.state.gold-5, shop:this.genShop()}); }
   leaveShop(){ this.setState({screen:'plan'}, ()=>this.genFloor()); }
@@ -560,16 +594,21 @@ class Pathomino extends React.Component {
     const m=this.placedMap(); const gc=this.ghostCells(); const gValid = gc&&this.ghostValid(gc);
     const gset = gc? new Set(gc.map(c=>c.join(','))):new Set();
     const cell=Math.min(Math.floor(440/g.n),52);
+    const connected=new Set();
+    if(m[g.start.join(',')]){ connected.add(g.start.join(',')); const q=[g.start];
+      while(q.length){ const [cr,cc]=q.shift(); [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=cr+dr,nc=cc+dc,kk=nr+','+nc;
+        if(nr>=0&&nc>=0&&nr<g.n&&nc<g.n&&m[kk]&&!connected.has(kk)){connected.add(kk);q.push([nr,nc]);} }); } }
+    const hasOrphan = this.state.placed.some(pl=>pl.cells.some(c=>!connected.has(c.join(','))));
     const cells=[];
     for(let r=0;r<g.n;r++)for(let c=0;c<g.n;c++){
       const k=r+','+c; const placed=m[k];
       const isStart=this.eq([r,c],g.start), isKey=this.eq([r,c],g.key), isDoor=this.eq([r,c],g.door);
       const isPawn=g.pawns.some(p=>this.eq(p,[r,c]));
       const inGhost=gset.has(k);
-      let bg='#13100e', bd=C.line;
-      if(placed){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
-      if(this.state.executing&&placed){ }
-      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; }
+      let bg='#13100e', bd=C.line, bstyle='solid';
+      if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
+        else { bg='#241f1a'; bd=C.line2; bstyle='dashed'; } }
+      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
       let content=null, col=C.mut;
       if(isStart) content=this.icon('flag',cell*.5, placed?C.gold2:C.text);
       else if(isKey) content=this.icon('key',cell*.52, C.gold2);
@@ -579,7 +618,7 @@ class Pathomino extends React.Component {
         'data-rc':r+','+c,
         onMouseEnter:()=>this.hoverCell(r,c),
         onClick:()=>this.placeAt(r,c),
-        style:{width:cell,height:cell,background:bg,border:'1px solid '+bd,borderRadius:3,
+        style:{width:cell,height:cell,background:bg,border:'1px '+bstyle+' '+bd,borderRadius:3,
           display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
           cursor:this.state.selPiece!==null?'pointer':'default',
           animation: this.state.executing&&placed?'pmPulse 1s ease infinite':((this.state.justPlaced||[]).includes(k)?'pmPop .34s ease backwards':(isKey?'pmGlow 2s ease infinite':'none'))}},
@@ -601,7 +640,7 @@ class Pathomino extends React.Component {
       const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
         background:sset.has(r+','+c)?(sel?C.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key, onMouseDown:(e)=>this.startDrag(i0,e), onTouchStart:(e)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
+      return h('div',{key:gr.key, onMouseDown:(e)=>this.startDrag(i0,e), onTouchStart:(e)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
         title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
         style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
           background:sel?'rgba(224,165,59,.14)':C.p1,border:'1px solid '+(sel?C.gold:C.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
@@ -632,7 +671,9 @@ class Pathomino extends React.Component {
         h('div',{style:{display:'flex',gap:18,alignItems:'center'}},
           this.statChip('heart', this.state.php+'/'+this.state.pmax, C.red),
           this.statChip('coin', this.state.gold, C.gold),
-          h('span',{style:{fontSize:12,color:C.mut}}, this.state.bossesBeaten+' boss vaincus'))),
+          h('span',{style:{fontSize:12,color:C.mut}}, this.state.bossesBeaten+' boss vaincus'),
+          h('button',{onClick:()=>this.openTuto(), title:'Comment jouer',
+            style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:C.p2,border:'1px solid '+C.line2,color:C.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?16:26,alignItems:port?'center':'flex-start'}},
         h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, grid,
           h('div',{style:{display:'flex',gap:18,marginTop:14,flexWrap:'wrap'}}, legend.map(([ic,lab])=>
@@ -648,7 +689,8 @@ class Pathomino extends React.Component {
             this.btn([this.icon('rotate',14),' Pivoter'], ()=>this.rotate(), {small:true,disabled:this.state.selPiece===null}),
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length})),
           h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
-          h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
+          h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
+          hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12,lineHeight:1.4}}, '\u26a0 Des pièces (en pointillés) ne sont pas reliées : elles doivent se toucher par les côtés, pas par les coins.') : null,
           this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
           this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true})
         )
@@ -871,6 +913,33 @@ class Pathomino extends React.Component {
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
       this.miniPiece(piece.key, s.rot, u, this.C.gold2));
   }
+  miniCells(cells,u,color,gap){ const h=React.createElement;
+    const set=new Set(cells.map(c=>c.join(','))); const rows=Math.max(...cells.map(c=>c[0]))+1, cols=Math.max(...cells.map(c=>c[1]))+1; const out=[];
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ out.push(h('div',{key:r+','+c,style:{width:u,height:u,borderRadius:2,
+      background:set.has(r+','+c)?color:'#1a1614',border:'1px solid '+(set.has(r+','+c)?color:this.C.line)}})); }
+    return h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u+2}px)`,gap:gap||3}}, out); }
+  renderMute(){ const C=this.C,h=React.createElement;
+    return h('button',{onClick:()=>this.toggleMute(), title:this.state.muted?'Activer le son':'Couper le son',
+      style:{position:'fixed',top:10,right:10,zIndex:500,width:38,height:38,borderRadius:8,cursor:'pointer',
+        background:'rgba(14,11,9,.8)',border:'1px solid '+C.line2,color:this.state.muted?C.mut:C.gold,fontSize:17,display:'flex',alignItems:'center',justifyContent:'center'}},
+      this.state.muted?'\u{1F507}':'\u{1F50A}'); }
+  renderTuto(){ const C=this.C,h=React.createElement;
+    if(!this.state.showTuto || this.state.screen!=='plan') return null;
+    const step=(ic,title,body)=>h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',textAlign:'left',marginBottom:14}},
+      h('div',{style:{flexShrink:0,width:34,height:34,borderRadius:8,background:'#0e0b09',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:C.gold}}, ic),
+      h('div',null, h('div',{style:{fontSize:13,fontWeight:700,color:C.text,marginBottom:3}}, title),
+        h('div',{style:{fontSize:12,color:C.mut,lineHeight:1.5}}, body)));
+    const ok=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[0,1]],14,C.green), h('span',{style:{color:C.green,fontSize:13,fontWeight:700}}, '✓ reliées (côté)'));
+    const no=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[1,1]],14,C.red), h('span',{style:{color:C.red,fontSize:13,fontWeight:700}}, '✗ non reliées (coin)'));
+    return h('div',{style:{position:'fixed',inset:0,zIndex:450,background:'rgba(5,4,3,.78)',display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:()=>this.closeTuto()},
+      h('div',{onClick:(e)=>e.stopPropagation(),style:{width:'100%',maxWidth:420,background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+C.line,borderRadius:12,padding:'26px 24px',boxShadow:'0 30px 80px rgba(0,0,0,.6)',animation:'pmFade .3s ease'}},
+        h('div',{className:'pm-pixel',style:{fontSize:14,color:C.gold,textAlign:'center',marginBottom:18}}, 'COMMENT JOUER'),
+        step(this.icon('flag',18,C.gold),'Trace ton chemin','Relie le Départ à la Clé puis à la Porte en posant tes pièces sur la grille.'),
+        step(this.icon('rotate',18,C.gold),'Pose une pièce','Touche une pièce, vise une case, clique pour la poser. Molette / clic droit / R pour pivoter.'),
+        step('⚠','Relie par les côtés','Les pièces ne se connectent que si elles se touchent par un côté — jamais par un coin.'),
+        h('div',{style:{display:'flex',justifyContent:'center',gap:22,margin:'6px 0 20px',padding:'12px',background:'#0c0a09',borderRadius:8,border:'1px solid '+C.line}}, ok, no),
+        this.btn('Compris, jouer →', ()=>this.closeTuto(), {primary:true,wide:true})));
+  }
   renderVals(){
     const s=this.state;
     const port = (s.vh||800) > (s.vw||1280);
@@ -885,7 +954,9 @@ class Pathomino extends React.Component {
       combatEl:s.screen==='combat'?this.scaleWrap(this.renderCombat(port), port?464:920, port?884:600):null,
       shopEl:s.screen==='shop'?this.scaleWrap(this.renderShop(port), port?452:884, port?908:712):null,
       resultEl:s.screen==='result'?this.scaleWrap(this.renderResult(),520,470):null,
-      dragOverlay:this.renderDragOverlay()
+      dragOverlay:this.renderDragOverlay(),
+      tutoOverlay:this.renderTuto(),
+      muteBtn:this.renderMute()
     };
   }
 }
