@@ -133,11 +133,14 @@ class Pathomino extends React.Component {
     const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
     const x = pt&&pt.clientX!=null?pt.clientX:0, y = pt&&pt.clientY!=null?pt.clientY:0;
     this.setState(s=>({selPiece:i, dragging:true, ghost:null, rot:(s.selPiece===i?s.rot:0), dragXY:{x,y}})); }
+  clampAnchor(r,c,shape){ const n=this.state.grid.n;
+    const maxR=Math.max(...shape.map(s=>s[0])), maxC=Math.max(...shape.map(s=>s[1]));
+    return [Math.max(0,Math.min(r,n-1-maxR)), Math.max(0,Math.min(c,n-1-maxC))]; }
   placeAt(r,c){ if(this.state.selPiece===null||this.state.dragging) return;
     const piece=this.state.hand[this.state.selPiece]; if(!piece) return;
     const shape=this.rotated(piece.key, this.state.rot);
-    const cells=shape.map(([dr,dc])=>[r+dr,c+dc]);
-    if(!this.ghostValid(cells)) { this.setState({ghost:[r,c]}); return; }
+    const [ar,ac]=this.clampAnchor(r,c,shape);
+    const cells=shape.map(([dr,dc])=>[ar+dr,ac+dc]);
     const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0});
@@ -203,7 +206,8 @@ class Pathomino extends React.Component {
     if(this.state.selPiece===null || !this.state.ghost) return null;
     const piece = this.state.hand[this.state.selPiece]; if(!piece) return null;
     const shape = this.rotated(piece.key, this.state.rot);
-    return shape.map(([r,c])=>[this.state.ghost[0]+r, this.state.ghost[1]+c]);
+    const [ar,ac]=this.clampAnchor(this.state.ghost[0], this.state.ghost[1], shape);
+    return shape.map(([r,c])=>[ar+r, ac+c]);
   }
   ghostValid(cells){
     const n=this.state.grid.n;
@@ -597,8 +601,8 @@ class Pathomino extends React.Component {
       const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
         background:sset.has(r+','+c)?(sel?C.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key, onMouseDown:(e)=>this.startDrag(i0,e), onTouchStart:(e)=>this.startDrag(i0,e), onClick:()=>{ if(!this.state.dragging) this.setState({selPiece:sel?null:gr.idx[0], ghost:null, rot:0}); },
-        title:gr.key+' ×'+gr.idx.length+' — glisse sur la grille · tape pour pivoter via le bouton',
+      return h('div',{key:gr.key, onMouseDown:(e)=>this.startDrag(i0,e), onTouchStart:(e)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
+        title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
         style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
           background:sel?'rgba(224,165,59,.14)':C.p1,border:'1px solid '+(sel?C.gold:C.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
         h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u}px)`,gap:2}}, mini),
@@ -611,6 +615,13 @@ class Pathomino extends React.Component {
     const head=this.state.floor; const boss=g.boss;
     const bdef=this.BOSSES[Math.min(this.state.bossIndex,4)];
     const legend=[['flag','Départ'],['key','Clé'],[boss?'boss':'door',boss?bdef.name:'Porte'],['pawn','Pion (combat)']];
+    const handFull=this.state.hand.length>=this.HAND_MAX;
+    const drawTile=h('div',{key:'__draw', onClick:()=>{ if(!handFull) this.pickPiece(); }, title:'Piocher une pièce',
+      style:{position:'relative',width:64,height:64,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,
+        cursor:handFull?'not-allowed':'pointer',opacity:handFull?.5:1,background:'#0e0b09',border:'1px dashed '+(handFull?C.line2:C.gold),borderRadius:5}},
+      this.icon('deck',18,handFull?C.mut:C.gold),
+      h('div',{className:'pm-pixel',style:{fontSize:11,color:handFull?C.mut:C.gold2,lineHeight:1}}, this.state.hand.length+'/'+this.HAND_MAX),
+      h('div',{style:{fontSize:8,letterSpacing:'.1em',color:C.mut}}, handFull?'PLEIN':'PIOCHER'));
 
     return h('div',{style:{animation:'pmFade .4s ease',width:'100%',maxWidth:port?504:1060,padding:port?'10px 8px':'18px 26px'}},
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:port?12:18}},
@@ -630,12 +641,11 @@ class Pathomino extends React.Component {
         h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:C.p1,border:'1px solid '+C.line,borderRadius:8,padding:port?16:20}},
           h('div',{style:{fontSize:11,letterSpacing:'.16em',color:C.gold,marginBottom:6}}, 'PHASE DE PLANIFICATION'),
           h('p',{style:{fontSize:13,color:C.mut,lineHeight:1.5,marginBottom:16}}, 'Place des tétrominos pour relier le départ à la clé puis à la porte. Passe sur les pions pour les combattre, ou contourne-les.'),
-          h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:10}}, 'MAIN — '+this.state.hand.length+'/10 PIÈCES'),
-          h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}, tray.length?tray:h('span',{style:{fontSize:12,color:C.mut}},'Aucune pièce')),
-          this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12,lineHeight:1.45}}, 'Glisse la pièce sur la grille, ou tape une case pour la poser. Bouton Pivoter (molette / clic droit / R) pour tourner.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12,lineHeight:1.45}}, 'Tape une pièce puis glisse-la (ou tape une case) pour la poser sur la grille.'),
+          h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:10}}, 'TA MAIN'),
+          h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
+          this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12,lineHeight:1.45}}, 'Vise sur la grille (survole ou touche une case), puis clique pour poser — la pièce se cale au plus près. R · molette · clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12,lineHeight:1.45}}, 'Touche une pièce pour la prendre, puis vise la grille et clique pour la poser.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
             this.btn([this.icon('rotate',14),' Pivoter'], ()=>this.rotate(), {small:true,disabled:this.state.selPiece===null}),
-            this.btn('Piocher', ()=>this.pickPiece(), {small:true,disabled:this.state.hand.length>=this.HAND_MAX}),
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length})),
           h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
           h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
