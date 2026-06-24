@@ -1,10 +1,10 @@
 class Pathomino extends React.Component {
   render(){
     const h = React.createElement;
-    const v = this.renderVals();
-    return h('div', {id:'pm-root', style: v.hudEl ? {paddingTop:34} : {}},
-      v.introEl, v.homeEl, v.authEl, v.selectEl, v.planEl,
-      v.combatEl, v.shopEl, v.resultEl, v.hudEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
+    const vals = this.renderVals();
+    return h('div', {id:'pm-root', style: vals.hudEl ? {paddingTop:34} : {}},
+      vals.introEl, vals.homeEl, vals.authEl, vals.selectEl, vals.planEl,
+      vals.combatEl, vals.shopEl, vals.resultEl, vals.hudEl, vals.dragOverlay, vals.tutoOverlay, vals.muteBtn);
   }
 
   C = {ink:'#0e0c0b',p1:'#1b1715',p2:'#241f1b',p3:'#2f2823',line:'#3a342e',line2:'#4c443b',text:'#ece4d6',mut:'#8d8377',gold:'#e0a53b',gold2:'#f3c976',red:'#cf5040',green:'#86b46a',blue:'#6f9bca'};
@@ -69,7 +69,7 @@ class Pathomino extends React.Component {
     lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     rotate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg>',
     deck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="13" height="16" rx="2"/><path d="M8 3h9a2 2 0 0 1 2 2v12"/></svg>',
-    heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.6 8.9 2 5.5 5.2 5.5c2 0 3.2 1.2 3.8 2.3.6-1.1 1.8-2.3 3.8-2.3C16 5.5 17.4 8.9 16 11.7 13.5 16.4 12 21 12 21Z" transform="translate(0 -1)"/></svg>',
+    heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3clr.6 8.9 2 5.5 5.2 5.5c2 0 3.2 1.2 3.8 2.3.6-1.1 1.8-2.3 3.8-2.3C16 5.5 17.4 8.9 16 11.7 13.5 16.4 12 21 12 21Z" transform="translate(0 -1)"/></svg>',
     coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M9.5 9.2c0-1.2 1.1-1.8 2.5-1.8s2.5.7 2.5 1.9c0 2.5-5 1.5-5 4 0 1.2 1.1 1.9 2.5 1.9s2.5-.6 2.5-1.8" stroke-linecap="round"/></svg>',
     chest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M3 12h18"/><path d="M3 8l2-3h14l2 3"/><rect x="10.5" y="11" width="3" height="3" rx="0.5" fill="currentColor" stroke="none"/></svg>'
   };
@@ -85,8 +85,8 @@ class Pathomino extends React.Component {
     portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false
   };
 
-  loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
-  saveAccount(a){ try{ localStorage.setItem('pm_account', JSON.stringify(a)); }catch(e){} }
+  loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(_e){ return null; } }
+  saveAccount(a){ try{ localStorage.setItem('pm_account', JSON.stringify(a)); }catch(_e){} }
   submitAuth(){
     const name=(this.state.authName||'').trim();
     if(name.length<3){ this.setState({authErr:'Pseudo : 3 caractères minimum.'}); return; }
@@ -96,7 +96,7 @@ class Pathomino extends React.Component {
     this.setState({account:acc, authErr:'', authPass:'', screen:'select'});
   }
   playAsGuest(){ this.setState({account:{name:'Invité', guest:true}, screen:'select'}); }
-  logout(){ try{ localStorage.removeItem('pm_account'); }catch(e){} this.setState({account:null, screen:'home', authName:'', authPass:'', authErr:''}); }
+  logout(){ try{ localStorage.removeItem('pm_account'); }catch(_e){} this.setState({account:null, screen:'home', authName:'', authPass:'', authErr:''}); }
 
   sfx(name){ if(this.state.muted) return;
     try{
@@ -122,29 +122,29 @@ class Pathomino extends React.Component {
         over:()=>[440,330,247,165].forEach((f,i)=>tone(f,0.2,'sawtooth',0.15,i*0.15))
       };
       (S[name]||S.select)();
-    }catch(e){}
+    }catch(_e){}
   }
-  toggleMute(){ const m=!this.state.muted; try{ localStorage.setItem('pm_muted', m?'1':'0'); }catch(e){} this.setState({muted:m}); if(!m) this.sfx('select'); }
+  toggleMute(){ const m=!this.state.muted; try{ localStorage.setItem('pm_muted', m?'1':'0'); }catch(_e){} this.setState({muted:m}); if(!m) this.sfx('select'); }
   openTuto(){ this.setState({showTuto:true}); }
-  closeTuto(){ try{ localStorage.setItem('pm_tuto','1'); }catch(e){} this.setState({showTuto:false}); }
+  closeTuto(){ try{ localStorage.setItem('pm_tuto','1'); }catch(_e){} this.setState({showTuto:false}); }
 
   componentDidMount(){
     try{
       this.setState({voleurUnlocked: localStorage.getItem('pm_voleur')==='1', mageUnlocked: localStorage.getItem('pm_mage')==='1', best: parseInt(localStorage.getItem('pm_best')||'0',10), account:this.loadAccount(), muted: localStorage.getItem('pm_muted')==='1'});
-    }catch(e){}
+    }catch(_e){}
     this._resize = ()=>this.setState({vw:window.innerWidth, vh:window.innerHeight});
     this._resize();
     this._key = (e)=>{
       if(this.state.screen!=='plan' || this.state.executing) return;
-      if(e.key==='r'||e.key==='R'){ this.setState(s=>({rot:(s.rot+1)%4})); }
-      if(e.key==='Escape'){ this.setState({selPiece:null,ghost:null,dragging:false}); }
+      if(evt.key==='r'||evt.key==='R'){ this.setState(s=>({rot:(s.rot+1)%4})); }
+      if(evt.key==='Escape'){ this.setState({selPiece:null,ghost:null,dragging:false}); }
     };
-    this._move = (e)=>{ if(this.state.dragging) this.setState({dragXY:{x:e.clientX,y:e.clientY}}); };
+    this._move = (e)=>{ if(this.state.dragging) this.setState({dragXY:{x:evt.clientX,y:evt.clientY}}); };
     this._up = (e)=>{ if(!this.state.dragging) return; const cells=this.ghostCells();
       if(cells&&this.ghostValid(cells)){ this.placePiece(); } else { this.setState({dragging:false}); } };
     this._cellAt = (x,y)=>{ const el=document.elementFromPoint(x,y); const ce=el&&el.closest?el.closest('[data-rc]'):null;
       if(ce&&ce.dataset.rc){ const a=ce.dataset.rc.split(',').map(Number); return [a[0],a[1]]; } return null; };
-    this._tmove = (e)=>{ if(!this.state.dragging) return; const t=e.touches&&e.touches[0]; if(!t) return; e.preventDefault();
+    this._tmove = (e)=>{ if(!this.state.dragging) return; const t=evt.touches&&evt.touches[0]; if(!t) return; evt.preventDefault();
       const rc=this._cellAt(t.clientX,t.clientY); this.setState(rc?{dragXY:{x:t.clientX,y:t.clientY},ghost:rc}:{dragXY:{x:t.clientX,y:t.clientY}}); };
     this._tend = (e)=>{ if(!this.state.dragging) return; const cells=this.ghostCells();
       if(cells&&this.ghostValid(cells)){ this.placePiece(); } else { this.setState({dragging:false}); } };
@@ -170,8 +170,8 @@ class Pathomino extends React.Component {
     sp.rows.forEach((row,r)=>{ for(let c=0;c<row.length;c++){ const col=sp.pal[row[c]];
       if(col) cells.push(h('div',{key:r+'_'+c,style:{position:'absolute',left:c*px,top:r*px,width:px,height:px,background:col}})); } });
     return h('div',{style:{position:'relative',width:w*px,height:hgt*px,imageRendering:'pixelated',filter:'drop-shadow(0 4px 0 rgba(0,0,0,.4))'}}, cells); }
-  startDrag(i,e){ if(e&&e.preventDefault)e.preventDefault();
-    const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
+  startDrag(i,e){ if(e&&e.preventDefault)evt.preventDefault();
+    const pt = e&&evt.touches&&evt.touches[0] ? evt.touches[0] : e;
     const x = pt&&pt.clientX!=null?pt.clientX:0, y = pt&&pt.clientY!=null?pt.clientY:0;
     this.setState(s=>({selPiece:i, dragging:true, ghost:null, rot:(s.selPiece===i?s.rot:0), dragXY:{x,y}})); }
   clampAnchor(r,c,shape){ const n=this.state.grid.n;
@@ -179,11 +179,11 @@ class Pathomino extends React.Component {
     return [Math.max(0,Math.min(r,n-1-maxR)), Math.max(0,Math.min(c,n-1-maxC))]; }
   placeAt(r,c){ if(this.state.selPiece===null||this.state.dragging) return;
     const piece=this.state.hand[this.state.selPiece]; if(!piece) return;
-    const shape=this.rotated(piece.key, this.state.rot);
+    const shape=this.rotated(piecevt.key, this.state.rot);
     const [ar,ac]=this.clampAnchor(r,c,shape);
     const cells=shape.map(([dr,dc])=>[ar+dr,ac+dc]);
     if(!this.ghostValid(cells)){ this.sfx('bad'); this.setState({ghost:[ar,ac]}); return; }
-    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piecevt.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells); }
@@ -210,7 +210,7 @@ class Pathomino extends React.Component {
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
       php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], weapon:null, shop:null, hand, poisoned:false, portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false,
-      showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(e){ return true; } })()
+      showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(_e){ return true; } })()
     }, ()=> this.genFloor(true));
   }
   rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
@@ -281,24 +281,24 @@ class Pathomino extends React.Component {
   }
   eq(a,b){ return a[0]===b[0]&&a[1]===b[1]; }
 
-  placedMap(){ const m={}; this.state.placed.forEach(pl=>pl.cells.forEach(c=>{m[c.join(',')]=true;})); return m; }
+  placedMap(){ const m={}; this.state.placed.forEach(pl=>pl.cells.forEach(c=>{pmap[c.join(',')]=true;})); return m; }
   ghostCells(){
     if(this.state.selPiece===null || !this.state.ghost) return null;
     const piece = this.state.hand[this.state.selPiece]; if(!piece) return null;
-    const shape = this.rotated(piece.key, this.state.rot);
+    const shape = this.rotated(piecevt.key, this.state.rot);
     const [ar,ac]=this.clampAnchor(this.state.ghost[0], this.state.ghost[1], shape);
     return shape.map(([r,c])=>[ar+r, ac+c]);
   }
   ghostValid(cells){
-    const n=this.state.grid.n; const m=this.placedMap();
+    const n=this.state.grid.n; const pmap=this.placedMap();
     const hset=new Set((this.state.grid.holes||[]).map(p=>p.join(',')));
-    return cells.every(([r,c])=> r>=0&&c>=0&&r<n&&c<n && !m[r+','+c] && !hset.has(r+','+c));
+    return cells.every(([r,c])=> r>=0&&c>=0&&r<n&&c<n && !pmap[r+','+c] && !hset.has(r+','+c));
   }
   hoverCell(r,c){ if(this.state.selPiece!==null) this.setState({ghost:[r,c]}); }
   placePiece(){
     const cells=this.ghostCells(); if(!cells||!this.ghostValid(cells)) return;
     const piece=this.state.hand[this.state.selPiece];
-    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piecevt.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells);
@@ -316,24 +316,24 @@ class Pathomino extends React.Component {
   pickPiece(){ if(this.state.hand.length>=this.HAND_MAX || this.state.drawsLeft<=0)return; this.sfx('place'); this.setState(s=>({hand:[...s.hand, this.drawPiece()], drawsLeft:s.drawsLeft-1})); }
 
   pathOk(){
-    const g=this.state.grid; if(!g) return {ok:false};
-    const m=this.placedMap();
-    const inSet=(p)=>m[p.join(',')];
-    if(!inSet(g.start)||!inSet(g.key)||!inSet(g.door)) return {ok:false, reason:'Couvre départ, clé et porte'};
-    const n=g.n, seen=new Set([g.start.join(',')]); const q=[g.start];
+    const grid=this.state.grid; if(!grid) return {ok:false};
+    const pmap=this.placedMap();
+    const inSet=(p)=>pmap[p.join(',')];
+    if(!inSet(grid.start)||!inSet(grid.key)||!inSet(grid.door)) return {ok:false, reason:'Couvre départ, clé et porte'};
+    const n=grid.n, seen=new Set([grid.start.join(',')]); const q=[grid.start];
     while(q.length){ const[r,c]=q.shift();
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r+dr,nc=c+dc,k=nr+','+nc;
-        if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[k]&&!seen.has(k)){seen.add(k);q.push([nr,nc]);} }); }
+        if(nr>=0&&nc>=0&&nr<n&&nc<n&&pmap[k]&&!seen.has(k)){seen.add(k);q.push([nr,nc]);} }); }
     const pa=this.state.portalA, pb=this.state.portalB;
     if(pa&&pb){ const ak=pa.join(','),bk=pb.join(',');
-      if(seen.has(ak)&&m[bk]&&!seen.has(bk)){ seen.add(bk); const q2=[pb]; while(q2.length){ const[r2,c2]=q2.shift();
+      if(seen.has(ak)&&pmap[bk]&&!seen.has(bk)){ seen.add(bk); const q2=[pb]; while(q2.length){ const[r2,c2]=q2.shift();
         [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r2+dr,nc=c2+dc,kk=nr+','+nc;
-          if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[kk]&&!seen.has(kk)){seen.add(kk);q2.push([nr,nc]);} }); } }
-      else if(seen.has(bk)&&m[ak]&&!seen.has(ak)){ seen.add(ak); const q3=[pa]; while(q3.length){ const[r2,c2]=q3.shift();
+          if(nr>=0&&nc>=0&&nr<n&&nc<n&&pmap[kk]&&!seen.has(kk)){seen.add(kk);q2.push([nr,nc]);} }); } }
+      else if(seen.has(bk)&&pmap[ak]&&!seen.has(ak)){ seen.add(ak); const q3=[pa]; while(q3.length){ const[r2,c2]=q3.shift();
         [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r2+dr,nc=c2+dc,kk=nr+','+nc;
-          if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[kk]&&!seen.has(kk)){seen.add(kk);q3.push([nr,nc]);} }); } }
+          if(nr>=0&&nc>=0&&nr<n&&nc<n&&pmap[kk]&&!seen.has(kk)){seen.add(kk);q3.push([nr,nc]);} }); } }
     }
-    if(!seen.has(g.key.join(','))||!seen.has(g.door.join(','))) return {ok:false, reason:'Le chemin doit relier départ → clé → porte'};
+    if(!seen.has(grid.key.join(','))||!seen.has(grid.door.join(','))) return {ok:false, reason:'Le chemin doit relier départ → clé → porte'};
     return {ok:true};
   }
 
@@ -342,24 +342,24 @@ class Pathomino extends React.Component {
   validate(){
     const chk=this.pathOk(); if(!chk.ok) return;
     this.sfx('valid');
-    const g=this.state.grid; const m=this.placedMap();
-    const covered = g.pawns.filter(p=>m[p.join(',')]).sort((a,b)=>this.manhattan(g.start,a)-this.manhattan(g.start,b));
+    const grid=this.state.grid; const pmap=this.placedMap();
+    const covered = grid.pawns.filter(p=>pmap[p.join(',')]).sort((a,b)=>this.manhattan(grid.start,a)-this.manhattan(grid.start,b));
     this._queue = covered.map((p,i)=>this.makePawn(i));
-    if(g.boss) this._queue.push(this.makeBoss());
+    if(grid.boss) this._queue.push(this.makeBoss());
     this._qi=-1;
     const st={executing:true};
-    const trapSet=new Set((g.traps||[]).map(t=>t.join(',')));
-    if(Object.keys(m).some(k=>trapSet.has(k))) st.poisoned=true;
-    const foodSet=new Set((g.foods||[]).map(t=>t.join(',')));
-    const potionSet=new Set((g.potions||[]).map(t=>t.join(',')));
-    const foodHits=Object.keys(m).filter(k=>foodSet.has(k)).length;
+    const trapSet=new Set((grid.traps||[]).map(t=>t.join(',')));
+    if(Object.keys(pmap).some(k=>trapSet.has(k))) st.poisoned=true;
+    const foodSet=new Set((grid.foods||[]).map(t=>t.join(',')));
+    const potionSet=new Set((grid.potions||[]).map(t=>t.join(',')));
+    const foodHits=Object.keys(pmap).filter(k=>foodSet.has(k)).length;
     if(foodHits>0){ st.php=Math.min(this.state.pmax, this.state.php+foodHits*12); }
-    if(Object.keys(m).some(k=>potionSet.has(k))) st.poisoned=false;
-    if(g.treasure && m[g.treasure.join(',')]){
+    if(Object.keys(pmap).some(k=>potionSet.has(k))) st.poisoned=false;
+    if(grid.treasure && pmap[grid.treasure.join(',')]){
       if(this.rnd(0,1)===0){
         const bonus=this.rnd(15,25);
         const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
-        st.gold=this.state.gold+bonus; st.deck=[...this.state.deck, card];
+        st.gold=this.statenemy.gold+bonus; st.deck=[...this.state.deck, card];
         st.log=`Trésor ! +${bonus} or et une carte forte.`; this.sfx('coin');
       } else {
         const f=this.state.floor; const hp=Math.round(60+f*10);
@@ -473,8 +473,8 @@ class Pathomino extends React.Component {
     if(combo.heal){ php=Math.min(this.state.pmax, php+combo.heal); }
     if(combo.spade){ spadeRed += combo.spade; }
     let deck=this.state.deck;
-    this.addFloat('enemy', '-'+combo.dmg, this.C.gold2);
-    this.sfx('hit'); if(combo.heal){ this.sfx('heal'); this.addFloat('hero','+'+combo.heal, this.C.green); }
+    this.addFloat('enemy', '-'+combo.dmg, this.clr.gold2);
+    this.sfx('hit'); if(combo.heal){ this.sfx('heal'); this.addFloat('hero','+'+combo.heal, this.clr.green); }
     let target=8+(combo.draw||0);
     const rf=this.refill(deck, discard, chand, Math.min(11,target)); deck=rf.deck; discard=rf.discard; chand=rf.hand;
     this.setState({chand, deck, discard, enemy, php, spadeRed, csel:[], hitFlash:(this.state.hitFlash||0)+1, log:`${combo.name} — ${combo.dmg} dégâts${combo.effect? ' · '+combo.effect:''}`});
@@ -491,31 +491,31 @@ class Pathomino extends React.Component {
     setTimeout(()=>this.enemyTurn(),300);
   }
   enemyTurn(){
-    const e=this.state.enemy; if(!e||e.hp<=0){ this.setState({busy:false}); return; }
+    const enemy=this.state.enemy; if(!e||enemy.hp<=0){ this.setState({busy:false}); return; }
     const ch=this.CHARS[this.state.char];
     const turns=(this.state.enemyTurns||0)+1;
     const wepD=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
     const dodgeBonus=(wepD&&wepD.mod().dodgeBonus)||0;
-    const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - e.vit)*0.03 + 0.06 + dodgeBonus));
-    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.C.gold);
+    const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - enemy.vit)*0.03 + 0.06 + dodgeBonus));
+    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.clr.gold);
       this.setState({busy:false, enemyTurns:turns, log:`${ch.name} esquive l'attaque !`}); return; }
-    const esc = Math.max(0, turns-1) * Math.max(2, Math.round(e.atk*0.15));
-    const raw = Math.max(1, (e.atk + esc - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
+    const esc = Math.max(0, turns-1) * Math.max(2, Math.round(enemy.atk*0.15));
+    const raw = Math.max(1, (enemy.atk + esc - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
     const poisonDmg=this.state.poisoned?3:0;
     const php=Math.max(0, this.state.php - raw - poisonDmg);
-    this.sfx('hurt'); this.addFloat('hero','-'+(raw+poisonDmg), this.C.red); this.shakeEl('hero');
-    this.setState({php, busy:false, enemyTurns:turns, log:`${e.name} riposte — ${raw} dégâts${esc>0?' (enragé +'+esc+')':''}${poisonDmg>0?' + 3 poison':''}`});
+    this.sfx('hurt'); this.addFloat('hero','-'+(raw+poisonDmg), this.clr.red); this.shakeEl('hero');
+    this.setState({php, busy:false, enemyTurns:turns, log:`${enemy.name} riposte — ${raw} dégâts${esc>0?' (enragé +'+esc+')':''}${poisonDmg>0?' + 3 poison':''}`});
     if(php<=0){ setTimeout(()=>this.death(), 800); }
   }
   winCombat(){
-    const e=this.state.enemy; const gold=this.state.gold + e.gold;
-    this.sfx(e.kind==='boss'?'win':'coin');
-    this.addFloat('enemy','+'+e.gold+' or', this.C.gold);
-    let st={gold, log:`${e.name} vaincu ! +${e.gold} or`};
-    if(this.rnd(0,99) < (e.kind==='boss'?100:35)){
+    const enemy=this.state.enemy; const gold=this.statenemy.gold + enemy.gold;
+    this.sfx(enemy.kind==='boss'?'win':'coin');
+    this.addFloat('enemy','+'+enemy.gold+' or', this.clr.gold);
+    let st={gold, log:`${enemy.name} vaincu ! +${enemy.gold} or`};
+    if(this.rnd(0,99) < (enemy.kind==='boss'?100:35)){
       const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(10,14), suit:this.SUITS[this.rnd(0,3)]};
       st.deck=[...this.state.deck, card]; st.log+=' · butin : +1 carte au deck';
-      this.addFloat('enemy','+carte', this.C.blue);
+      this.addFloat('enemy','+carte', this.clr.blue);
     }
     this.setState(st);
     setTimeout(()=>{ this.setState({screen:'plan'}); setTimeout(()=>this.advanceQueue(), 450); }, 1000);
@@ -523,19 +523,19 @@ class Pathomino extends React.Component {
   death(){
     this.sfx('over');
     const best=Math.max(this.state.best, this.state.bossesBeaten);
-    try{ localStorage.setItem('pm_best', String(best)); }catch(e){}
+    try{ localStorage.setItem('pm_best', String(best)); }catch(_e){}
     this.setState({screen:'result', best, lastBoss:'mort'});
   }
   floorComplete(){
-    let st={}; const g=this.state.grid;
-    if(g.boss){
+    let st={}; const grid=this.state.grid;
+    if(grid.boss){
       const beaten=this.state.bossesBeaten+1; let bossIndex=this.state.bossIndex; let unlocked=this.state.voleurUnlocked; let mageUnlocked=this.state.mageUnlocked; let newUnlock=false;
-      if(this.BOSSES[bossIndex].key==='roi' && !unlocked){ unlocked=true; newUnlock=true; try{localStorage.setItem('pm_voleur','1');}catch(e){} }
-      if(this.BOSSES[bossIndex].key==='cavalier' && !mageUnlocked){ mageUnlocked=true; try{localStorage.setItem('pm_mage','1');}catch(e){} }
+      if(this.BOSSES[bossIndex].key==='roi' && !unlocked){ unlocked=true; newUnlock=true; try{localStorage.setItem('pm_voleur','1');}catch(_e){} }
+      if(this.BOSSES[bossIndex].key==='cavalier' && !mageUnlocked){ mageUnlocked=true; try{localStorage.setItem('pm_mage','1');}catch(_e){} }
       bossIndex=Math.min(bossIndex+1,4);
       st={bossesBeaten:beaten, bossIndex, gridN:Math.min(this.state.gridN+1,11), voleurUnlocked:unlocked, mageUnlocked, newUnlock,
           best:Math.max(this.state.best,beaten)};
-      try{ localStorage.setItem('pm_best', String(Math.max(this.state.best,beaten))); }catch(e){}
+      try{ localStorage.setItem('pm_best', String(Math.max(this.state.best,beaten))); }catch(_e){}
     }
     const shop=this.genShop();
     this.setState({...st, screen:'shop', floor:this.state.floor+1, shop});
@@ -555,33 +555,33 @@ class Pathomino extends React.Component {
     const portalReset=this.state.char==='mage'&&this.state.portalUsed?{type:'portalReset',price:16,sold:false}:null;
     return {jokers,pieces,cards,weapons,trimCard,trimPiece,portalReset};
   }
-  buyShop(cat,i){ const s=this.state; if(!s.shop) return;
+  buyShop(cat,i){ const snap=this.state; if(!snap.shop) return;
     if(cat==='portalReset'){
-      const o=s.shop[cat]; if(!o||o.sold||s.gold<o.price) return;
-      const shop={...s.shop,portalReset:{...o,sold:true}};
-      this.sfx('buy'); this.setState({gold:s.gold-o.price,portalUsed:false,portalRecharge:0,shop}); return;
+      const o=snap.shop[cat]; if(!o||o.sold||snap.gold<o.price) return;
+      const shop={...snap.shop,portalReset:{...o,sold:true}};
+      this.sfx('buy'); this.setState({gold:snap.gold-o.price,portalUsed:false,portalRecharge:0,shop}); return;
     }
     if(cat==='trimCard'||cat==='trimPiece'){
-      const o=s.shop[cat]; if(!o||o.sold||s.gold<o.price) return;
+      const o=snap.shop[cat]; if(!o||o.sold||snap.gold<o.price) return;
       if(cat==='trimCard'){
-        const deck=[...s.deck]; deck.splice(this.rnd(0,deck.length-1),1);
-        const shop={...s.shop,trimCard:{...o,sold:true}};
-        this.sfx('buy'); this.setState({gold:s.gold-o.price,deck,shop}); return;
+        const deck=[...snap.deck]; deck.splice(this.rnd(0,deck.length-1),1);
+        const shop={...snap.shop,trimCard:{...o,sold:true}};
+        this.sfx('buy'); this.setState({gold:snap.gold-o.price,deck,shop}); return;
       }
-      const hand=[...s.hand]; hand.splice(this.rnd(0,hand.length-1),1);
-      const shop={...s.shop,trimPiece:{...o,sold:true}};
-      this.sfx('buy'); this.setState({gold:s.gold-o.price,hand,shop}); return;
+      const hand=[...snap.hand]; hand.splice(this.rnd(0,hand.length-1),1);
+      const shop={...snap.shop,trimPiece:{...o,sold:true}};
+      this.sfx('buy'); this.setState({gold:snap.gold-o.price,hand,shop}); return;
     }
-    const o=s.shop[cat][i]; if(!o||o.sold||s.gold<o.price) return;
-    if(cat==='jokers'){ if(s.jokers.length>=5) return; this.setState({jokers:[...s.jokers,o.key]}); }
-    else if(cat==='pieces'){ if(s.hand.length>=this.HAND_MAX) return; this.setState({hand:[...s.hand,{uid:Math.random().toString(36).slice(2),key:o.shape}]}); }
-    else if(cat==='cards'){ this.setState({deck:[...s.deck,{uid:Math.random().toString(36).slice(2),rank:o.rank,suit:o.suit}]}); }
+    const o=snap.shop[cat][i]; if(!o||o.sold||snap.gold<o.price) return;
+    if(cat==='jokers'){ if(snap.jokers.length>=5) return; this.setState({jokers:[...snap.jokers,o.key]}); }
+    else if(cat==='pieces'){ if(snap.hand.length>=this.HAND_MAX) return; this.setState({hand:[...snap.hand,{uid:Math.random().toString(36).slice(2),key:o.shape}]}); }
+    else if(cat==='cards'){ this.setState({deck:[...snap.deck,{uid:Math.random().toString(36).slice(2),rank:o.rank,suit:o.suit}]}); }
     else if(cat==='weapons'){ this.setState({weapon:o.key}); }
-    const shop={jokers:[...s.shop.jokers],pieces:[...s.shop.pieces],cards:[...s.shop.cards],weapons:[...s.shop.weapons]};
+    const shop={jokers:[...snap.shop.jokers],pieces:[...snap.shop.pieces],cards:[...snap.shop.cards],weapons:[...snap.shop.weapons]};
     shop[cat]=shop[cat].map((x,j)=>j===i?{...x,sold:true}:x);
-    this.sfx('buy'); this.setState({gold:s.gold-o.price, shop});
+    this.sfx('buy'); this.setState({gold:snap.gold-o.price, shop});
   }
-  rerollShop(){ if(this.state.gold<5) return; this.setState({gold:this.state.gold-5, shop:this.genShop()}); }
+  rerollShop(){ if(this.statenemy.gold<5) return; this.setState({gold:this.statenemy.gold-5, shop:this.genShop()}); }
   leaveShop(){ this.setState({screen:'plan'}, ()=>this.genFloor()); }
 
   addFloat(target,text,color){ const id=Math.random().toString(36).slice(2);
@@ -589,20 +589,20 @@ class Pathomino extends React.Component {
     setTimeout(()=>this.setState(s=>({floats:s.floats.filter(f=>f.id!==id)})),1100); }
   shakeEl(t){ this._shake=t; this.setState(s=>({_sk:Math.random()})); setTimeout(()=>{this._shake=null;this.setState(s=>({_sk:Math.random()}));},450); }
 
-  icon(name,size,color){ const C=this.C; return React.createElement('span',{style:{display:'inline-flex',width:size,height:size,color:color||C.text},dangerouslySetInnerHTML:{__html:this.SVG[name]}}); }
+  icon(name,size,color){ const clr=this.C; return React.createElement('span',{style:{display:'inline-flex',width:size,height:size,color:color||clr.text},dangerouslySetInnerHTML:{__html:this.SVG[name]}}); }
 
-  btn(label,onClick,opt={}){ const C=this.C; const {primary,danger,disabled,small,wide}=opt;
+  btn(label,onClick,opt={}){ const clr=this.C; const {primary,danger,disabled,small,wide}=opt;
     return React.createElement('button',{onClick:disabled?null:onClick,disabled,style:{
       fontFamily:'Space Grotesk',fontWeight:600,fontSize:small?12:14,letterSpacing:'.04em',
       padding:small?'8px 12px':'12px 18px',borderRadius:3,cursor:disabled?'not-allowed':'pointer',
-      border:'1px solid '+(primary?C.gold:danger?C.red:C.line2),
-      background:disabled?'#1a1614':primary?'linear-gradient(180deg,#e9b24b,#c98a2f)':danger?'rgba(207,80,64,.12)':C.p2,
-      color:disabled?C.mut:primary?'#1a1207':danger?C.red:C.text,opacity:disabled?.5:1,
+      border:'1px solid '+(primary?clr.gold:danger?clr.red:clr.line2),
+      background:disabled?'#1a1614':primary?'linear-gradient(180deg,#e9b24b,#c98a2f)':danger?'rgba(207,80,64,.12)':clr.p2,
+      color:disabled?clr.mut:primary?'#1a1207':danger?clr.red:clr.text,opacity:disabled?.5:1,
       width:wide?'100%':'auto',transition:'transform .08s,filter .15s',textTransform:'uppercase',
       boxShadow:primary&&!disabled?'0 3px 0 #8a5e1f':'none'
-    }, onMouseDown:e=>{if(!disabled)e.currentTarget.style.transform='translateY(2px)';},
-       onMouseUp:e=>e.currentTarget.style.transform='none',
-       onMouseLeave:e=>e.currentTarget.style.transform='none'}, label); }
+    }, onMouseDown:evt=>{if(!disabled)evt.currentTarget.style.transform='translateY(2px)';},
+       onMouseUp:evt=>evt.currentTarget.style.transform='none',
+       onMouseLeave:evt=>evt.currentTarget.style.transform='none'}, label); }
 
   renderIntro(){
     const h=React.createElement;
@@ -622,23 +622,23 @@ class Pathomino extends React.Component {
   }
 
   renderHome(port){
-    const C=this.C,h=React.createElement; const acc=this.state.account;
+    const clr=this.C,h=React.createElement; const acc=this.state.account;
     const feats=[
-      {ic:'flag',title:'Trace le chemin',col:C.gold},
-      {ic:'deck',title:'Combat de cartes',col:C.blue},
-      {ic:'heart',title:'Une seule vie',col:C.red}
+      {ic:'flag',title:'Trace le chemin',col:clr.gold},
+      {ic:'deck',title:'Combat de cartes',col:clr.blue},
+      {ic:'heart',title:'Une seule vie',col:clr.red}
     ];
     const glyphs=['\u265F','\u265E','\u265D','\u265C','\u265B','\u265A'];
     const featCards = feats.map((f,i)=> h('div',{key:i,style:{display:'flex',gap:12,alignItems:'center',textAlign:'left',
-      background:'linear-gradient(180deg,#1b1613,#141009)',border:'1px solid '+C.line,borderRadius:8,padding:'14px 16px',
+      background:'linear-gradient(180deg,#1b1613,#141009)',border:'1px solid '+clr.line,borderRadius:8,padding:'14px 16px',
       animation:'pmRise .5s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.25+i*0.12)+'s',
       width:port?'100%':220}},
-      h('div',{style:{width:34,height:34,flexShrink:0,borderRadius:8,background:'#0e0b09',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:f.col}}, this.icon(f.ic,18,f.col)),
-      h('div',{style:{fontSize:13,fontWeight:700,color:C.text}}, f.title)));
+      h('div',{style:{width:34,height:34,flexShrink:0,borderRadius:8,background:'#0e0b09',border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center',color:f.col}}, this.icon(f.ic,18,f.col)),
+      h('div',{style:{fontSize:13,fontWeight:700,color:clr.text}}, f.title)));
 
     const cta = acc?
       h('div',{style:{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}},
-        h('div',{style:{fontSize:14,color:C.mut}}, 'Connecté en tant que ', h('span',{style:{color:C.gold,fontWeight:700}}, acc.name)),
+        h('div',{style:{fontSize:14,color:clr.mut}}, 'Connecté en tant que ', h('span',{style:{color:clr.gold,fontWeight:700}}, acc.name)),
         h('div',{style:{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}},
           this.btn('Continuer \u2192', ()=>this.setState({screen:'select'}), {primary:true}),
           this.btn('Se déconnecter', ()=>this.logout(), {small:true})))
@@ -652,51 +652,51 @@ class Pathomino extends React.Component {
 
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'16px 12px':'28px 24px',maxWidth:port?340:840}},
       h('div',{style:{display:'flex',gap:port?10:16,justifyContent:'center',marginBottom:18,opacity:.5}},
-        glyphs.map((g,i)=>h('span',{key:i,style:{fontSize:port?20:26,color:i%2?C.gold:C.mut,animation:'pmBob '+(2+i*0.3)+'s ease-in-out infinite'}},g))),
-      h('div',{style:{fontSize:port?10:11,letterSpacing:port?'.3em':'.5em',color:C.gold,marginBottom:12}}, 'PUZZLE \u00B7 ROGUELIKE \u00B7 DONJON'),
-      h('h1',{className:'pm-pixel',style:{fontSize:port?34:62,lineHeight:1.05,color:C.text,textShadow:'0 5px 0 #2a211a, 0 0 40px rgba(224,165,59,.3)',marginBottom:14,animation:'pmTitleIn .7s cubic-bezier(.2,.8,.2,1) backwards'}}, 'PATHOMINO'),
+        glyphs.map((g,i)=>h('span',{key:i,style:{fontSize:port?20:26,color:i%2?clr.gold:clr.mut,animation:'pmBob '+(2+i*0.3)+'s ease-in-out infinite'}},g))),
+      h('div',{style:{fontSize:port?10:11,letterSpacing:port?'.3em':'.5em',color:clr.gold,marginBottom:12}}, 'PUZZLE \u00B7 ROGUELIKE \u00B7 DONJON'),
+      h('h1',{className:'pm-pixel',style:{fontSize:port?34:62,lineHeight:1.05,color:clr.text,textShadow:'0 5px 0 #2a211a, 0 0 40px rgba(224,165,59,.3)',marginBottom:14,animation:'pmTitleIn .7s cubic-bezier(.2,.8,.2,1) backwards'}}, 'PATHOMINO'),
 
-      this.state.best>0 ? h('p',{style:{color:C.gold,fontSize:13,margin:'8px auto 0',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
+      this.state.best>0 ? h('p',{style:{color:clr.gold,fontSize:13,margin:'8px auto 0',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:14,justifyContent:'center',alignItems:port?'stretch':'flex-start',margin:port?'24px 0':'34px 0'}}, featCards),
       cta
     );
   }
 
-  authInput(value,onCh,ph,type){ const C=this.C,h=React.createElement;
+  authInput(value,onCh,ph,type){ const clr=this.C,h=React.createElement;
     return h('input',{type:type||'text', value:value||'', placeholder:ph,
-      onChange:(e)=>onCh(e.target.value),
-      onKeyDown:(e)=>{ if(e.key==='Enter') this.submitAuth(); },
-      onFocus:(e)=>e.target.style.borderColor=C.gold,
-      onBlur:(e)=>e.target.style.borderColor=C.line2,
-      style:{width:'100%',padding:'12px 14px',borderRadius:6,background:'#0e0b09',border:'1px solid '+C.line2,
-        color:C.text,fontSize:15,fontFamily:'Space Grotesk',outline:'none',transition:'border-color .15s'}}); }
+      onChange:(evt)=>onCh(evt.target.value),
+      onKeyDown:(evt)=>{ if(evt.key==='Enter') this.submitAuth(); },
+      onFocus:(evt)=>evt.target.style.borderColor=clr.gold,
+      onBlur:(evt)=>evt.target.style.borderColor=clr.line2,
+      style:{width:'100%',padding:'12px 14px',borderRadius:6,background:'#0e0b09',border:'1px solid '+clr.line2,
+        color:clr.text,fontSize:15,fontFamily:'Space Grotesk',outline:'none',transition:'border-color .15s'}}); }
   renderAuth(port){
-    const C=this.C,h=React.createElement; const login=this.state.authMode==='login';
+    const clr=this.C,h=React.createElement; const login=this.state.authMode==='login';
     const field=(label,node)=>h('div',{style:{textAlign:'left',marginBottom:14}},
-      h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:6}}, label), node);
+      h('div',{style:{fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:6}}, label), node);
     return h('div',{style:{animation:'pmFade .4s ease',width:port?320:400,padding:port?'24px 20px':'34px 32px',
-      background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+C.line,borderRadius:12,boxShadow:'0 30px 80px rgba(0,0,0,.5)'}},
+      background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+clr.line,borderRadius:12,boxShadow:'0 30px 80px rgba(0,0,0,.5)'}},
       h('div',{style:{textAlign:'center',marginBottom:6}},
-        h('span',{className:'pm-pixel',style:{fontSize:16,color:C.gold,textShadow:'0 3px 0 #6e4a1a'}}, 'PATHOMINO')),
-      h('div',{className:'pm-pixel',style:{fontSize:13,color:C.text,textAlign:'center',marginBottom:6,lineHeight:1.5}}, login?'SE CONNECTER':'CRÉER UN COMPTE'),
-      h('p',{style:{fontSize:12,color:C.mut,textAlign:'center',marginBottom:22,lineHeight:1.5}}, 'Ton compte garde ton pseudo et tes records sur cet appareil.'),
+        h('span',{className:'pm-pixel',style:{fontSize:16,color:clr.gold,textShadow:'0 3px 0 #6e4a1a'}}, 'PATHOMINO')),
+      h('div',{className:'pm-pixel',style:{fontSize:13,color:clr.text,textAlign:'center',marginBottom:6,lineHeight:1.5}}, login?'SE CONNECTER':'CRÉER UN COMPTE'),
+      h('p',{style:{fontSize:12,color:clr.mut,textAlign:'center',marginBottom:22,lineHeight:1.5}}, 'Ton compte garde ton pseudo et tes records sur cet appareil.'),
       field('PSEUDO', this.authInput(this.state.authName,(v)=>this.setState({authName:v,authErr:''}),'Ton nom d\u2019aventurier')),
       field('MOT DE PASSE', this.authInput(this.state.authPass,(v)=>this.setState({authPass:v,authErr:''}),'\u2022\u2022\u2022\u2022','password')),
-      this.state.authErr? h('div',{style:{fontSize:12,color:C.red,marginBottom:12,textAlign:'left'}}, this.state.authErr):null,
+      this.state.authErr? h('div',{style:{fontSize:12,color:clr.red,marginBottom:12,textAlign:'left'}}, this.state.authErr):null,
       this.btn(login?'Se connecter \u2192':'Créer le compte \u2192', ()=>this.submitAuth(), {primary:true,wide:true}),
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:16,gap:8}},
         h('button',{onClick:()=>this.setState({authMode:login?'create':'login',authErr:''}),
-          style:{background:'none',border:'none',color:C.mut,fontSize:12,cursor:'pointer',fontFamily:'Space Grotesk',textDecoration:'underline',padding:0}},
+          style:{background:'none',border:'none',color:clr.mut,fontSize:12,cursor:'pointer',fontFamily:'Space Grotesk',textDecoration:'underline',padding:0}},
           login?'Pas de compte ? Créer':'Déjà un compte ? Se connecter'),
         h('button',{onClick:()=>this.playAsGuest(),
-          style:{background:'none',border:'none',color:C.mut,fontSize:12,cursor:'pointer',fontFamily:'Space Grotesk',padding:0}}, 'Invité')),
-      h('div',{style:{height:1,background:C.line,margin:'18px 0 14px'}}),
+          style:{background:'none',border:'none',color:clr.mut,fontSize:12,cursor:'pointer',fontFamily:'Space Grotesk',padding:0}}, 'Invité')),
+      h('div',{style:{height:1,background:clr.line,margin:'18px 0 14px'}}),
       this.btn('\u2190 Retour', ()=>this.setState({screen:'home',authErr:''}), {small:true,wide:true})
     );
   }
 
   renderSelect(port){
-    const C=this.C, h=React.createElement;
+    const clr=this.C, h=React.createElement;
     const keys=['chevalier','mage','voleur'];
     const ci=this.state.charIdx||0;
     const k=keys[ci]; const c=this.CHARS[k];
@@ -710,35 +710,35 @@ class Pathomino extends React.Component {
     const stats=[['Vie',c.vie],['Force',c.force],['Équilibre',c.defense],['Magie',c.magie],['Vitesse',c.vitesse]];
 
     const statsEl = isLocked && k==='voleur' ?
-      h('div',{style:{fontSize:13,color:C.mut,marginTop:12,letterSpacing:'.1em'}}, '?  ?  ?  ?  ?') :
+      h('div',{style:{fontSize:13,color:clr.mut,marginTop:12,letterSpacing:'.1em'}}, '?  ?  ?  ?  ?') :
       h('div',{style:{display:'grid',gridTemplateColumns:'1fr',gap:5,marginTop:14,width:port?260:300}},
         stats.map(([lab,v])=>{
           const maxV=lab==='Vie'?120:18;
           return h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:8,fontSize:12}},
-            h('span',{style:{width:58,color:C.mut}},lab),
+            h('span',{style:{width:58,color:clr.mut}},lab),
             h('div',{style:{flex:1,height:5,background:'#0e0b09',borderRadius:3,overflow:'hidden'}},
-              h('div',{style:{height:'100%',width:Math.min(100,(v/maxV)*100)+'%',background:isLocked?C.mut:c.color,borderRadius:3,transition:'width .3s'}})),
-            h('span',{style:{width:26,textAlign:'right',color:isLocked?C.mut:C.text,fontWeight:600}}, isLocked&&k==='voleur'?'?':v));
+              h('div',{style:{height:'100%',width:Math.min(100,(v/maxV)*100)+'%',background:isLocked?clr.mut:c.color,borderRadius:3,transition:'width .3s'}})),
+            h('span',{style:{width:26,textAlign:'right',color:isLocked?clr.mut:clr.text,fontWeight:600}}, isLocked&&k==='voleur'?'?':v));
         }));
 
     const lockMsg = locked ? 'Bats le Roi pour débloquer' : mageLocked ? 'Bats le premier boss pour débloquer' : null;
     const desc = k==='chevalier'?'Tank. Encaisse tout.':k==='mage'?'Fragile. Puissant. Un portail par étage.':'Agile. Esquive souvent.';
 
     const spriteEl = isLocked && k==='voleur' ?
-      h('div',{style:{width:130,height:140,display:'flex',alignItems:'center',justifyContent:'center',fontSize:72,color:C.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
+      h('div',{style:{width:130,height:140,display:'flex',alignItems:'center',justifyContent:'center',fontSize:72,color:clr.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
       h('div',{style:{opacity:isLocked?.4:1}}, this.pixelSprite(k, 10));
 
     const card = h('div',{
-      onTouchStart:(e)=>{ this._swipeX=e.touches[0].clientX; },
-      onTouchEnd:(e)=>{ const dx=e.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); },
+      onTouchStart:(evt)=>{ this._swipeX=evt.touches[0].clientX; },
+      onTouchEnd:(evt)=>{ const dx=evt.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); },
       style:{display:'flex',flexDirection:'column',alignItems:'center',gap:10,padding:port?'20px 16px':'26px 28px',
-        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?C.line:c.color),borderRadius:10,
+        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?clr.line:c.color),borderRadius:10,
         width:port?290:320,minHeight:460,animation:'pmFade .3s ease',transition:'border-color .3s'}},
       spriteEl,
-      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?C.mut:C.text}}, isLocked&&k==='voleur'?'???':c.name),
+      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?clr.mut:clr.text}}, isLocked&&k==='voleur'?'???':c.name),
       lockMsg ?
-        h('div',{style:{fontSize:12,color:C.mut,fontStyle:'italic',textAlign:'center'}}, lockMsg) :
-        h('div',{style:{fontSize:13,color:C.mut,textAlign:'center'}}, desc),
+        h('div',{style:{fontSize:12,color:clr.mut,fontStyle:'italic',textAlign:'center'}}, lockMsg) :
+        h('div',{style:{fontSize:13,color:clr.mut,textAlign:'center'}}, desc),
       statsEl,
       isLocked ? null : h('div',{style:{marginTop:'auto',width:'100%',paddingTop:12}},
         this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true}))
@@ -746,70 +746,70 @@ class Pathomino extends React.Component {
 
     const dots = h('div',{style:{display:'flex',gap:8,justifyContent:'center',marginTop:14}},
       keys.map((_,i)=>h('div',{key:i,onClick:()=>this.setState({charIdx:i}),
-        style:{width:i===ci?20:8,height:8,borderRadius:4,background:i===ci?C.gold:C.line2,cursor:'pointer',transition:'width .2s'}})));
+        style:{width:i===ci?20:8,height:8,borderRadius:4,background:i===ci?clr.gold:clr.line2,cursor:'pointer',transition:'width .2s'}})));
 
     const arrow=(dir,label)=>h('button',{onClick:()=>nav(dir),
-      style:{background:'none',border:'1px solid '+C.line2,color:C.mut,width:42,height:42,borderRadius:6,
+      style:{background:'none',border:'1px solid '+clr.line2,color:clr.mut,width:42,height:42,borderRadius:6,
         cursor:'pointer',fontSize:20,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
         transition:'border-color .15s'},
-      onMouseEnter:e=>e.currentTarget.style.borderColor=C.gold,
-      onMouseLeave:e=>e.currentTarget.style.borderColor=C.line2}, label);
+      onMouseEnter:evt=>evt.currentTarget.style.borderColor=clr.gold,
+      onMouseLeave:evt=>evt.currentTarget.style.borderColor=clr.line2}, label);
 
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'12px 8px':24,maxWidth:port?360:820}},
-      h('div',{style:{fontSize:11,letterSpacing:'.5em',color:C.gold,marginBottom:18}}, 'CHOISIR TON HÉROS'),
-      this.state.best>0 ? h('p',{style:{color:C.gold,fontSize:12,margin:'0 auto 16px',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
+      h('div',{style:{fontSize:11,letterSpacing:'.5em',color:clr.gold,marginBottom:18}}, 'CHOISIR TON HÉROS'),
+      this.state.best>0 ? h('p',{style:{color:clr.gold,fontSize:12,margin:'0 auto 16px',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
       h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',gap:port?8:18}},
         arrow(-1,'←'), card, arrow(1,'→')),
       dots,
-      h('div',{style:{fontSize:11,color:C.mut,marginTop:10}}, (ci+1)+' / '+keys.length)
+      h('div',{style:{fontSize:11,color:clr.mut,marginTop:10}}, (ci+1)+' / '+keys.length)
     );
   }
 
   renderPlan(port){
-    const C=this.C,h=React.createElement; const g=this.state.grid; if(!g) return h('div',null);
-    const m=this.placedMap(); const gc=this.ghostCells(); const gValid = gc&&this.ghostValid(gc);
+    const clr=this.C,h=React.createElement; const grid=this.state.grid; if(!grid) return h('div',null);
+    const pmap=this.placedMap(); const gc=this.ghostCells(); const gValid = gc&&this.ghostValid(gc);
     const gset = gc? new Set(gc.map(c=>c.join(','))):new Set();
-    const cell=Math.min(Math.floor(440/g.n),52);
+    const cell=Math.min(Math.floor(440/grid.n),52);
     const connected=new Set();
-    if(m[g.start.join(',')]){ connected.add(g.start.join(',')); const q=[g.start];
+    if(pmap[grid.start.join(',')]){ connected.add(grid.start.join(',')); const q=[grid.start];
       while(q.length){ const [cr,cc]=q.shift(); [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=cr+dr,nc=cc+dc,kk=nr+','+nc;
-        if(nr>=0&&nc>=0&&nr<g.n&&nc<g.n&&m[kk]&&!connected.has(kk)){connected.add(kk);q.push([nr,nc]);} }); } }
+        if(nr>=0&&nc>=0&&nr<grid.n&&nc<grid.n&&pmap[kk]&&!connected.has(kk)){connected.add(kk);q.push([nr,nc]);} }); } }
     const hasOrphan = this.state.placed.some(pl=>pl.cells.some(c=>!connected.has(c.join(','))));
     const cells=[];
-    for(let r=0;r<g.n;r++)for(let c=0;c<g.n;c++){
-      const k=r+','+c; const placed=m[k];
-      const isStart=this.eq([r,c],g.start), isKey=this.eq([r,c],g.key), isDoor=this.eq([r,c],g.door);
-      const isPawn=g.pawns.some(p=>this.eq(p,[r,c]));
+    for(let r=0;r<grid.n;r++)for(let c=0;c<grid.n;c++){
+      const k=r+','+c; const placed=pmap[k];
+      const isStart=this.eq([r,c],grid.start), isKey=this.eq([r,c],grid.key), isDoor=this.eq([r,c],grid.door);
+      const isPawn=grid.pawns.some(p=>this.eq(p,[r,c]));
       const inGhost=gset.has(k);
-      let bg='#13100e', bd=C.line, bstyle='solid';
-      if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
-        else { bg='#241f1a'; bd=C.line2; bstyle='dashed'; } }
-      const isTreasure = g.treasure && this.eq(g.treasure,[r,c]);
-      const isHole=(g.holes||[]).some(p=>this.eq(p,[r,c]));
-      const isTrap=(g.traps||[]).some(p=>this.eq(p,[r,c]));
-      const isFood=(g.foods||[]).some(p=>this.eq(p,[r,c]));
-      const isPotion=(g.potions||[]).some(p=>this.eq(p,[r,c]));
+      let bg='#13100e', bd=clr.line, bstyle='solid';
+      if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=clr.gold; }
+        else { bg='#241f1a'; bd=clr.line2; bstyle='dashed'; } }
+      const isTreasure = grid.treasure && this.eq(grid.treasure,[r,c]);
+      const isHole=(grid.holes||[]).some(p=>this.eq(p,[r,c]));
+      const isTrap=(grid.traps||[]).some(p=>this.eq(p,[r,c]));
+      const isFood=(grid.foods||[]).some(p=>this.eq(p,[r,c]));
+      const isPotion=(grid.potions||[]).some(p=>this.eq(p,[r,c]));
       const isPortalA=this.state.portalA&&this.eq(this.state.portalA,[r,c]);
       const isPortalB=this.state.portalB&&this.eq(this.state.portalB,[r,c]);
       if(isFood && !placed){ bg='rgba(160,50,50,.2)'; bd='#7a3a3a'; }
       if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
       if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
-      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
+      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?clr.gold2:clr.red; bstyle='solid'; }
       if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
-      if(isPortalA||isPortalB){ bd=C.blue; bstyle='solid'; bg='rgba(111,155,202,.22)'; }
-      if(this.state.selectingPortal&&!placed&&!isHole){ bd=C.blue; bstyle='dashed'; }
+      if(isPortalA||isPortalB){ bd=clr.blue; bstyle='solid'; bg='rgba(111,155,202,.22)'; }
+      if(this.state.selectingPortal&&!placed&&!isHole){ bd=clr.blue; bstyle='dashed'; }
       let content=null;
       if(isFood && !placed) content=h('span',{style:{fontSize:cell*.5,color:'#d96060',filter:'drop-shadow(0 0 3px rgba(220,80,80,.5))'}}, '\u2665');
       else if(isPotion && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#a06ad0',filter:'drop-shadow(0 0 3px rgba(160,100,220,.5))'}}, '\u2697');
       else if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
       else if(isTrap && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#5a9a5a',filter:'drop-shadow(0 0 3px rgba(80,180,80,.5))'}}, '\u2620');
-      else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: m[k]?C.red:C.mut}}, '\u265F',
-        (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, C.gold2)) : null);
-      else if(isStart) content=this.icon('flag',cell*.5, placed?C.gold2:C.text);
-      else if(isKey) content=this.icon('key',cell*.52, C.gold2);
-      else if(isDoor) content= g.boss? h('span',{style:{fontSize:cell*.62,lineHeight:1,color:placed?C.red:'#b98', filter:'drop-shadow(0 0 4px rgba(207,80,64,.5))'}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : this.icon('door',cell*.55, placed?C.gold2:C.text);
-      else if(isTreasure) content=this.icon('chest',cell*.56, placed?C.gold2:C.gold);
-      if(isPortalA||isPortalB) content=h('span',{style:{fontSize:cell*.38,color:C.blue,fontWeight:900,filter:'drop-shadow(0 0 3px rgba(111,155,202,.7))'}},isPortalA?'A':'B');
+      else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: pmap[k]?clr.red:clr.mut}}, '\u265F',
+        (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, clr.gold2)) : null);
+      else if(isStart) content=this.icon('flag',cell*.5, placed?clr.gold2:clr.text);
+      else if(isKey) content=this.icon('key',cell*.52, clr.gold2);
+      else if(isDoor) content= grid.boss? h('span',{style:{fontSize:cell*.62,lineHeight:1,color:placed?clr.red:'#b98', filter:'drop-shadow(0 0 4px rgba(207,80,64,.5))'}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : this.icon('door',cell*.55, placed?clr.gold2:clr.text);
+      else if(isTreasure) content=this.icon('chest',cell*.56, placed?clr.gold2:clr.gold);
+      if(isPortalA||isPortalB) content=h('span',{style:{fontSize:cell*.38,color:clr.blue,fontWeight:900,filter:'drop-shadow(0 0 3px rgba(111,155,202,.7))'}},isPortalA?'A':'B');
       cells.push(h('div',{key:k,
         'data-rc':r+','+c,
         onMouseEnter:()=>this.hoverCell(r,c),
@@ -819,7 +819,7 @@ class Pathomino extends React.Component {
             if(!this.eq(this.state.portalA,[r,c])&&!isHole){ this.setState({portalB:[r,c],portalUsed:true,selectingPortal:false,portalRecharge:this.state.floor+2}); this.sfx('valid'); return; }
             return;
           }
-          if(this.state.selPiece===null && m[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c);
+          if(this.state.selPiece===null && pmap[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c);
         },
         style:{width:cell,height:cell,background:bg,border:'1px '+bstyle+' '+bd,borderRadius:3,
           display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
@@ -827,11 +827,11 @@ class Pathomino extends React.Component {
           animation: this.state.executing&&placed?'pmPulse 1s ease infinite':((this.state.justPlaced||[]).includes(k)?'pmPop .34s ease backwards':(isKey?'pmGlow 2s ease infinite':'none'))}},
         content));
     }
-    const grid=h('div',{onMouseLeave:()=>{ if(!this.state.dragging) this.setState({ghost:null}); },
-      onContextMenu:(e)=>{ e.preventDefault(); if(this.state.selPiece!==null) this.rotate(); },
-      onWheel:(e)=>{ if(this.state.selPiece!==null){ this.rotate(); } },
-      style:{display:'grid',gridTemplateColumns:`repeat(${g.n},${cell}px)`,gap:2,padding:14,touchAction:'none',
-        background:'#0c0a09',border:'1px solid '+C.line,borderRadius:8,boxShadow:'inset 0 0 40px rgba(0,0,0,.6)'}}, cells);
+    const gridEl=h('div',{onMouseLeave:()=>{ if(!this.state.dragging) this.setState({ghost:null}); },
+      onContextMenu:(evt)=>{ evt.preventDefault(); if(this.state.selPiece!==null) this.rotate(); },
+      onWheel:(evt)=>{ if(this.state.selPiece!==null){ this.rotate(); } },
+      style:{display:'grid',gridTemplateColumns:`repeat(${grid.n},${cell}px)`,gap:2,padding:14,touchAction:'none',
+        background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,boxShadow:'inset 0 0 40px rgba(0,0,0,.6)'}}, cells);
 
     const groups={}; this.state.hand.forEach((p,i)=>{ (groups[p.key]=groups[p.key]||{key:p.key,idx:[]}).idx.push(i); });
     const selKey = this.state.selPiece!==null && this.state.hand[this.state.selPiece] ? this.state.hand[this.state.selPiece].key : null;
@@ -842,120 +842,120 @@ class Pathomino extends React.Component {
       const rows=Math.max(...shape.map(c=>c[0]))+1, cols=Math.max(...shape.map(c=>c[1]))+1;
       const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
-        background:sset.has(r+','+c)?(sel?C.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key, onMouseDown:(e)=>this.startDrag(i0,e), onTouchStart:(e)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
+        background:sset.has(r+','+c)?(sel?clr.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
+      return h('div',{key:gr.key, onMouseDown:(evt)=>this.startDrag(i0,e), onTouchStart:(evt)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
         title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
         style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
-          background:sel?'rgba(224,165,59,.14)':C.p1,border:'1px solid '+(sel?C.gold:C.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
+          background:sel?'rgba(224,165,59,.14)':clr.p1,border:'1px solid '+(sel?clr.gold:clr.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
         h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u}px)`,gap:2}}, mini),
         h('div',{style:{position:'absolute',top:-7,right:-7,minWidth:18,height:18,padding:'0 4px',borderRadius:9,
-          background:gr.idx.length>1?C.gold:C.p3,color:gr.idx.length>1?'#1a1207':C.mut,border:'1px solid '+(gr.idx.length>1?C.gold2:C.line),
+          background:gr.idx.length>1?clr.gold:clr.p3,color:gr.idx.length>1?'#1a1207':clr.mut,border:'1px solid '+(gr.idx.length>1?clr.gold2:clr.line),
           fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '\u00d7'+gr.idx.length));
     });
 
     const chk=this.pathOk();
-    const head=this.state.floor; const boss=g.boss;
+    const head=this.state.floor; const boss=grid.boss;
     const bdef=this.BOSSES[Math.min(this.state.bossIndex,4)];
     const legend=[['flag','Départ'],['key','Clé'],[boss?'boss':'door',boss?bdef.name:'Porte'],['pawn','Pion (combat)'],['chest','Trésor']];
     const noDraw=this.state.hand.length>=this.HAND_MAX || this.state.drawsLeft<=0;
     const drawTile=h('div',{key:'__draw', onClick:()=>{ if(!noDraw) this.pickPiece(); }, title:'Piocher une pièce ('+this.state.drawsLeft+' restantes cet étage)',
       style:{position:'relative',width:64,height:64,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,
-        cursor:noDraw?'not-allowed':'pointer',opacity:noDraw?.5:1,background:'#0e0b09',border:'1px dashed '+(noDraw?C.line2:C.gold),borderRadius:5}},
-      this.icon('deck',18,noDraw?C.mut:C.gold),
-      h('div',{className:'pm-pixel',style:{fontSize:11,color:noDraw?C.mut:C.gold2,lineHeight:1}}, this.state.hand.length+'/'+this.HAND_MAX),
-      h('div',{style:{fontSize:8,letterSpacing:'.08em',color:C.mut}}, this.state.hand.length>=this.HAND_MAX?'PLEIN':('PIOCHE '+this.state.drawsLeft)));
+        cursor:noDraw?'not-allowed':'pointer',opacity:noDraw?.5:1,background:'#0e0b09',border:'1px dashed '+(noDraw?clr.line2:clr.gold),borderRadius:5}},
+      this.icon('deck',18,noDraw?clr.mut:clr.gold),
+      h('div',{className:'pm-pixel',style:{fontSize:11,color:noDraw?clr.mut:clr.gold2,lineHeight:1}}, this.state.hand.length+'/'+this.HAND_MAX),
+      h('div',{style:{fontSize:8,letterSpacing:'.08em',color:clr.mut}}, this.state.hand.length>=this.HAND_MAX?'PLEIN':('PIOCHE '+this.state.drawsLeft)));
 
     return h('div',{style:{animation:'pmFade .4s ease',width:'100%',maxWidth:port?504:1060,padding:port?'10px 8px':'18px 26px'}},
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:port?12:18}},
         h('div',{style:{display:'flex',alignItems:'center',gap:14}},
-          h('span',{className:'pm-pixel',style:{fontSize:15,color:C.gold}}, 'PATHOMINO'),
-          h('span',{style:{fontSize:13,color:C.mut,padding:'4px 12px',border:'1px solid '+C.line,borderRadius:20}},
+          h('span',{className:'pm-pixel',style:{fontSize:15,color:clr.gold}}, 'PATHOMINO'),
+          h('span',{style:{fontSize:13,color:clr.mut,padding:'4px 12px',border:'1px solid '+clr.line,borderRadius:20}},
             `Étage ${head} · ${boss?'BOSS — '+bdef.name : 'Normal'}`)),
         h('div',{style:{display:'flex',gap:18,alignItems:'center'}},
-          this.statChip('heart', this.state.php+'/'+this.state.pmax, C.red),
-          this.statChip('coin', this.state.gold, C.gold),
-          h('span',{style:{fontSize:12,color:C.mut}}, this.state.bossesBeaten+' boss vaincus'),
+          this.statChip('heart', this.state.php+'/'+this.state.pmax, clr.red),
+          this.statChip('coin', this.statenemy.gold, clr.gold),
+          h('span',{style:{fontSize:12,color:clr.mut}}, this.state.bossesBeaten+' boss vaincus'),
           h('button',{onClick:()=>this.openTuto(), title:'Comment jouer',
-            style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:C.p2,border:'1px solid '+C.line2,color:C.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
+            style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:clr.p2,border:'1px solid '+clr.line2,color:clr.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?16:26,alignItems:port?'center':'flex-start'}},
-        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, grid,
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, gridEl,
           ),
-        h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:C.p1,border:'1px solid '+C.line,borderRadius:8,padding:port?16:20}},
+        h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:clr.p1,border:'1px solid '+clr.line,borderRadius:8,padding:port?16:20}},
 
-          h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:10}}, 'TA MAIN'),
+          h('div',{style:{fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:10}}, 'TA MAIN'),
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:C.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
+          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
             this.state.char==='mage'?this.btn(
               this.state.selectingPortal?'Annuler portail':(this.state.portalUsed?'\u29bf Portail (\u00e9t.'+this.state.portalRecharge+')':'\u29bf Portail'),
               ()=>{ if(!this.state.portalUsed||this.state.selectingPortal) this.setState(s=>({selectingPortal:!s.selectingPortal,portalA:null})); },
               {small:true,disabled:this.state.portalUsed&&!this.state.selectingPortal}):null),
-          h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
-          this.state.poisoned ? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:8,padding:'6px 10px',background:'rgba(86,154,90,.1)',border:'1px solid '+C.green,borderRadius:5,fontSize:12,color:C.green}},
+          h('div',{style:{height:1,background:clr.line,margin:'14px 0'}}),
+          this.state.poisoned ? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:8,padding:'6px 10px',background:'rgba(86,154,90,.1)',border:'1px solid '+clr.green,borderRadius:5,fontSize:12,color:clr.green}},
             h('span',null,'☠'),
             h('span',null,'Empoisonné — +3 dmg/tour en combat')) : null,
-          h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
-          hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12}}, 'Pièces non reliées') : null,
+          h('div',{style:{fontSize:13,color:chk.ok?clr.green:clr.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
+          hasOrphan? h('div',{style:{fontSize:12,color:clr.red,marginBottom:12}}, 'Pièces non reliées') : null,
           this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
           this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true}),
           this.state.weapon ? h('div',{style:{display:'flex',alignItems:'center',gap:8,marginTop:10,padding:'6px 10px',background:'rgba(224,165,59,.08)',border:'1px solid #4a3a1a',borderRadius:5,fontSize:11}},
-            h('span',{style:{fontSize:16,color:this.C.gold}}, this.WEAPONS[this.state.weapon].glyph),
+            h('span',{style:{fontSize:16,color:this.clr.gold}}, this.WEAPONS[this.state.weapon].glyph),
             h('div',null,
-              h('div',{style:{color:this.C.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
-              h('div',{style:{color:this.C.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
+              h('div',{style:{color:this.clr.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
+              h('div',{style:{color:this.clr.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
         )
       )
     );
   }
-  statChip(ic,val,col){ const C=this.C,h=React.createElement;
-    return h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:13,fontWeight:600,color:C.text}},
+  statChip(ic,val,col){ const clr=this.C,h=React.createElement;
+    return h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:13,fontWeight:600,color:clr.text}},
       this.icon(ic,16,col), val); }
 
   renderHud(){
-    const C=this.C,h=React.createElement; const s=this.state;
+    const clr=this.C,h=React.createElement; const s=this.state;
     if(!s.char) return null;
     const phpPct=Math.max(0,Math.min(100,(s.php/s.pmax)*100));
-    const hpCol=phpPct>50?C.green:phpPct>25?C.gold:C.red;
+    const hpCol=phpPct>50?clr.green:phpPct>25?clr.gold:clr.red;
     return h('div',{style:{position:'fixed',top:0,left:0,right:0,zIndex:300,
-      background:'rgba(14,11,9,.93)',borderBottom:'1px solid '+C.line,
+      background:'rgba(14,11,9,.93)',borderBottom:'1px solid '+clr.line,
       display:'flex',alignItems:'center',gap:14,padding:'5px 14px',fontFamily:'Space Grotesk, sans-serif'}},
       h('div',{style:{display:'flex',alignItems:'center',gap:6}},
         this.icon('heart',14,hpCol),
         h('div',{style:{width:72,height:6,background:'#0e0b09',borderRadius:3,overflow:'hidden'}},
           h('div',{style:{height:'100%',width:phpPct+'%',background:hpCol,borderRadius:3,transition:'width .3s'}})),
-        h('span',{style:{fontSize:11,color:C.mut,minWidth:52}}, s.php+'/'+s.pmax)),
-      s.poisoned ? h('span',{style:{fontSize:13,color:C.green,title:'Empoisonn\u00e9'}}, '\u2620') : null,
-      h('div',{style:{width:'1px',height:16,background:C.line}}),
-      this.statChip('coin', s.gold+' or', C.gold),
-      h('div',{style:{width:'1px',height:16,background:C.line}}),
-      h('span',{style:{fontSize:11,color:C.mut}}, '\u00c9tage\u00a0'+s.floor),
-      h('span',{style:{fontSize:11,color:C.mut}}, s.bossesBeaten+'/5 boss'));
+        h('span',{style:{fontSize:11,color:clr.mut,minWidth:52}}, s.php+'/'+s.pmax)),
+      s.poisoned ? h('span',{style:{fontSize:13,color:clr.green,title:'Empoisonn\u00e9'}}, '\u2620') : null,
+      h('div',{style:{width:'1px',height:16,background:clr.line}}),
+      this.statChip('coin', s.gold+' or', clr.gold),
+      h('div',{style:{width:'1px',height:16,background:clr.line}}),
+      h('span',{style:{fontSize:11,color:clr.mut}}, '\u00c9tage\u00a0'+s.floor),
+      h('span',{style:{fontSize:11,color:clr.mut}}, s.bossesBeaten+'/5 boss'));
   }
 
   renderCombat(port){
-    const C=this.C,h=React.createElement; const e=this.state.enemy; if(!e) return h('div',null);
+    const clr=this.C,h=React.createElement; const enemy=this.state.enemy; if(!enemy) return h('div',null);
     const ch=this.CHARS[this.state.char];
     const sel=this.state.csel.map(uid=>this.state.chand.find(c=>c.uid===uid)).filter(Boolean);
     const combo=this.detect(sel);
-    const ehpPct=Math.max(0,(e.hp/e.max)*100), phpPct=Math.max(0,(this.state.php/this.state.pmax)*100);
+    const ehpPct=Math.max(0,(enemy.hp/enemy.max)*100), phpPct=Math.max(0,(this.state.php/this.state.pmax)*100);
     const floats=(t)=>this.state.floats.filter(f=>f.target===t).map(f=>
       h('div',{key:f.id,style:{position:'absolute',left:'50%',top:'30%',transform:'translateX(-50%)',
         fontFamily:'Press Start 2P',fontSize:18,color:f.color,animation:'pmFloatUp 1.1s ease forwards',pointerEvents:'none',whiteSpace:'nowrap',textShadow:'0 2px 0 #000'}}, f.text));
 
-    const isBoss=e.kind==='boss';
+    const isBoss=enemy.kind==='boss';
     const enemyBox = (w)=> h('div',{style:{width:w}},
-      h('div',{style:{background:'#0e0b09',border:'2px solid '+C.line2,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
+      h('div',{style:{background:'#0e0b09',border:'2px solid '+clr.line2,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
         h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}},
-          h('span',{className:'pm-pixel',style:{fontSize:11,color:C.text}}, e.name),
-          h('span',{style:{fontSize:11,color:C.mut}}, isBoss?'BOSS':'Niv.'+this.state.floor)),
-        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+C.line}},
+          h('span',{className:'pm-pixel',style:{fontSize:11,color:clr.text}}, enemy.name),
+          h('span',{style:{fontSize:11,color:clr.mut}}, isBoss?'BOSS':'Niv.'+this.state.floor)),
+        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+clr.line}},
           h('div',{style:{height:'100%',width:ehpPct+'%',background:ehpPct>30?'linear-gradient(90deg,#86b46a,#5d8a45)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
-        h('div',{style:{textAlign:'right',fontSize:11,color:C.mut,marginTop:3}}, e.hp+'/'+e.max+' PV'),
-        e.suit? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginTop:6,paddingTop:6,borderTop:'1px solid '+C.line}},
-          h('span',{style:{fontSize:11,color:C.mut}}, 'Immunité'),
-          h('span',{style:{fontSize:15,color:(e.suit==='\u2665'||e.suit==='\u2666')?C.red:C.text}}, e.suit),
-          h('span',{style:{fontSize:11,color:C.mut}}, '\u2014 annule ce pouvoir')):null));
+        h('div',{style:{textAlign:'right',fontSize:11,color:clr.mut,marginTop:3}}, enemy.hp+'/'+enemy.max+' PV'),
+        enemy.suit? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginTop:6,paddingTop:6,borderTop:'1px solid '+clr.line}},
+          h('span',{style:{fontSize:11,color:clr.mut}}, 'Immunité'),
+          h('span',{style:{fontSize:15,color:(enemy.suit==='\u2665'||enemy.suit==='\u2666')?clr.red:clr.text}}, enemy.suit),
+          h('span',{style:{fontSize:11,color:clr.mut}}, '\u2014 annule ce pouvoir')):null));
 
     const jokerBarInner = this.state.jokers.length? h('div',{style:{display:'flex',gap:6,zIndex:5}},
       this.state.jokers.map((k,i)=>{ const j=this.JOKERS[k]; return h('div',{key:i,title:j.name+' \u2014 '+j.desc,style:{width:34,height:46,borderRadius:6,background:'linear-gradient(165deg,#2a2438,#171320)',border:'1.5px solid '+j.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:j.color,boxShadow:'0 3px 6px rgba(0,0,0,.5)'}}, j.glyph); })):null;
@@ -964,7 +964,7 @@ class Pathomino extends React.Component {
       h('div',{style:{position:'relative',textAlign:'center',animation: this.state.defeating?'pmDefeat .7s ease forwards':(this._shake==='enemy'?'pmShake .45s':'pmBob 2.6s ease-in-out infinite')}},
         floats('enemy'),
         h('div',{style:{position:'relative',display:'inline-block'}},
-          h('div',{style:{fontSize:isBoss?108:84,lineHeight:1,color:isBoss?C.red:C.text,filter:'drop-shadow(0 6px 8px rgba(0,0,0,.6))'+(isBoss?' drop-shadow(0 0 14px rgba(207,80,64,.5))':'')}}, e.glyph),
+          h('div',{style:{fontSize:isBoss?108:84,lineHeight:1,color:isBoss?clr.red:clr.text,filter:'drop-shadow(0 6px 8px rgba(0,0,0,.6))'+(isBoss?' drop-shadow(0 0 14px rgba(207,80,64,.5))':'')}}, enemy.glyph),
           h('div',{key:'flash'+(this.state.hitFlash||0),style:{position:'absolute',inset:'-8px',borderRadius:'50%',background:'radial-gradient(circle,#fff,rgba(255,255,255,0) 68%)',mixBlendMode:'screen',opacity:0,animation:(this.state.hitFlash>0?'pmFlash .42s ease':'none'),pointerEvents:'none'}})),
         h('div',{style:{width:isBoss?150:120,height:18,margin:'2px auto 0',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
 
@@ -975,17 +975,17 @@ class Pathomino extends React.Component {
       h('div',{style:{width:120,height:18,margin:'0 auto',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
 
     const heroBox=(w)=>h('div',{style:{width:w}},
-      h('div',{style:{background:'#0e0b09',border:'2px solid '+C.gold,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
+      h('div',{style:{background:'#0e0b09',border:'2px solid '+clr.gold,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
         h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}},
-          h('span',{className:'pm-pixel',style:{fontSize:11,color:C.gold}}, ch.name),
-          h('span',{style:{fontSize:11,color:C.mut}}, 'VIT '+ch.vitesse+(this.state.spadeRed?' · \u2660-'+this.state.spadeRed:''))),
-        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+C.line}},
+          h('span',{className:'pm-pixel',style:{fontSize:11,color:clr.gold}}, ch.name),
+          h('span',{style:{fontSize:11,color:clr.mut}}, 'VIT '+ch.vitesse+(this.state.spadeRed?' · \u2660-'+this.state.spadeRed:''))),
+        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+clr.line}},
           h('div',{style:{height:'100%',width:phpPct+'%',background:phpPct>30?'linear-gradient(90deg,#e9b24b,#c98a2f)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
-        h('div',{style:{textAlign:'right',fontSize:11,color:C.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV'),
-        this.state.weapon?h('div',{style:{display:'flex',alignItems:'center',gap:5,marginTop:6,paddingTop:6,borderTop:'1px solid '+C.line}},
-          h('span',{style:{fontSize:14,color:C.gold}}, this.WEAPONS[this.state.weapon].glyph),
-          h('span',{style:{fontSize:10,color:C.mut}}, this.WEAPONS[this.state.weapon].name),
-          h('span',{style:{fontSize:10,color:C.gold2}}, this.WEAPONS[this.state.weapon].desc)):null));
+        h('div',{style:{textAlign:'right',fontSize:11,color:clr.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV'),
+        this.state.weapon?h('div',{style:{display:'flex',alignItems:'center',gap:5,marginTop:6,paddingTop:6,borderTop:'1px solid '+clr.line}},
+          h('span',{style:{fontSize:14,color:clr.gold}}, this.WEAPONS[this.state.weapon].glyph),
+          h('span',{style:{fontSize:10,color:clr.mut}}, this.WEAPONS[this.state.weapon].name),
+          h('span',{style:{fontSize:10,color:clr.gold2}}, this.WEAPONS[this.state.weapon].desc)):null));
   // heroBox closing
 
     const hand=this.state.chand; const nC=hand.length;
@@ -1002,21 +1002,21 @@ class Pathomino extends React.Component {
     const canPlay=combo&&combo.valid;
     const backdrop=h('div',{style:{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 56px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 56px)',maskImage:'linear-gradient(180deg,transparent,#000 40%,transparent 70%)'}});
     const glow=h('div',{style:{position:'absolute',top:0,left:0,right:0,height:300,background:'radial-gradient(60% 80% at 78% 30%,rgba(207,80,64,.12),transparent)'}});
-    const comboReadout=(w)=>h('div',{style:{width:w||'auto',flexShrink:0,textAlign:w?'left':'center',position:'relative',zIndex:50,background:'rgba(14,11,9,.82)',border:'1px solid '+C.line,borderRadius:8,padding:'8px 12px'}},
-      h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:4}}, 'COMBINAISON'),
-      h('div',{className:'pm-pixel',style:{fontSize:14,color:canPlay?C.gold:C.mut,marginBottom:6,lineHeight:1.3}}, combo?combo.name:'—'),
-      canPlay? h('div',{style:{fontSize:13,color:C.text}}, combo.dmg+' dégâts'+(this.state.csel.length?' · '+this.state.csel.length+'/5':'')) : h('div',{style:{fontSize:12,color:C.mut}}, 'Sélectionne 1 à 5 cartes'),
-      canPlay&&combo.effect? h('div',{style:{fontSize:12,color:C.gold2,marginTop:3}}, combo.effect):null);
-    const fanArea=h('div',{style:{flex:1,display:'flex',justifyContent:'center',alignItems:'flex-end',paddingTop:30,minHeight:120,padding:'30px 10px 0'}}, fan.length?fan:h('span',{style:{color:C.mut,fontSize:13}},'Deck vide'));
-    const deckInfo=h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:11,color:C.mut,justifyContent:'center'}}, this.icon('deck',14,C.mut), 'Deck '+this.state.deck.length+' · Défausse '+this.state.discard.length);
+    const comboReadout=(w)=>h('div',{style:{width:w||'auto',flexShrink:0,textAlign:w?'left':'center',position:'relative',zIndex:50,background:'rgba(14,11,9,.82)',border:'1px solid '+clr.line,borderRadius:8,padding:'8px 12px'}},
+      h('div',{style:{fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:4}}, 'COMBINAISON'),
+      h('div',{className:'pm-pixel',style:{fontSize:14,color:canPlay?clr.gold:clr.mut,marginBottom:6,lineHeight:1.3}}, combo?combo.name:'—'),
+      canPlay? h('div',{style:{fontSize:13,color:clr.text}}, combo.dmg+' dégâts'+(this.state.csel.length?' · '+this.state.csel.length+'/5':'')) : h('div',{style:{fontSize:12,color:clr.mut}}, 'Sélectionne 1 à 5 cartes'),
+      canPlay&&combo.effect? h('div',{style:{fontSize:12,color:clr.gold2,marginTop:3}}, combo.effect):null);
+    const fanArea=h('div',{style:{flex:1,display:'flex',justifyContent:'center',alignItems:'flex-end',paddingTop:30,minHeight:120,padding:'30px 10px 0'}}, fan.length?fan:h('span',{style:{color:clr.mut,fontSize:13}},'Deck vide'));
+    const deckInfo=h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:11,color:clr.mut,justifyContent:'center'}}, this.icon('deck',14,clr.mut), 'Deck '+this.state.deck.length+' · Défausse '+this.state.discard.length);
     const playBtn=this.btn('Jouer', ()=>this.play(), {primary:true,wide:true,small:true,disabled:!canPlay||this.state.busy});
     const discBtn=this.btn('Défausser ('+this.state.discardsLeft+')', ()=>this.discardHand(), {wide:true,small:true,disabled:!this.state.csel.length||this.state.busy||this.state.discardsLeft<=0});
-    const logToast=h('div',{style:{position:'absolute',top:14,left:'50%',transform:'translateX(-50%)',background:'rgba(14,11,9,.85)',border:'1px solid '+C.line,borderRadius:20,padding:'6px 18px',fontSize:12,color:C.text,maxWidth:port?420:480,textAlign:'center',zIndex:6}}, this.state.log);
+    const logToast=h('div',{style:{position:'absolute',top:14,left:'50%',transform:'translateX(-50%)',background:'rgba(14,11,9,.85)',border:'1px solid '+clr.line,borderRadius:20,padding:'6px 18px',fontSize:12,color:clr.text,maxWidth:port?420:480,textAlign:'center',zIndex:6}}, this.state.log);
 
     if(port){
       return h('div',{style:{animation:'pmFade .4s ease',width:464,height:884,position:'relative',
         background:'linear-gradient(180deg,#2a2520 0%,#1c1814 52%,#15110e 100%)',borderRadius:10,
-        border:'1px solid '+C.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
+        border:'1px solid '+clr.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
         backdrop, glow, logToast,
         h('div',{style:{position:'absolute',top:0,left:0,right:0,bottom:272,display:'flex',flexDirection:'column',alignItems:'center',padding:'54px 18px 0',gap:4}},
           enemyBox(384),
@@ -1024,7 +1024,7 @@ class Pathomino extends React.Component {
           jokerBarInner? h('div',{style:{display:'flex',justifyContent:'center',margin:'2px 0'}}, jokerBarInner):null,
           h('div',{style:{transform:'scale(.9)'}}, heroSprite),
           heroBox(360)),
-        h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:272,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 38%)',borderTop:'2px solid '+C.line,display:'flex',flexDirection:'column',padding:'12px 14px 14px'}},
+        h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:272,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 38%)',borderTop:'2px solid '+clr.line,display:'flex',flexDirection:'column',padding:'12px 14px 14px'}},
           comboReadout(null),
           fanArea,
           h('div',{style:{display:'flex',gap:8,alignItems:'stretch',marginTop:6,position:'relative',zIndex:50}},
@@ -1035,32 +1035,32 @@ class Pathomino extends React.Component {
 
     return h('div',{style:{animation:'pmFade .4s ease',width:920,height:600,position:'relative',
       background:'linear-gradient(180deg,#2a2520 0%,#1c1814 52%,#15110e 100%)',borderRadius:10,
-      border:'1px solid '+C.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
+      border:'1px solid '+clr.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
       backdrop, glow,
       h('div',{style:{position:'absolute',top:30,right:46}}, enemyBox(300)),
       h('div',{style:{position:'absolute',top:118,right:96}}, enemySprite),
       h('div',{style:{position:'absolute',bottom:150,left:230}}, heroBox(280)),
       h('div',{style:{position:'absolute',bottom:166,left:80}}, heroSprite),
       jokerBarInner? h('div',{style:{position:'absolute',top:14,left:14}}, jokerBarInner):null,
-      h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:142,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 40%)',borderTop:'2px solid '+C.line,display:'flex',alignItems:'center',padding:'0 22px',gap:20}},
+      h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:142,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 40%)',borderTop:'2px solid '+clr.line,display:'flex',alignItems:'center',padding:'0 22px',gap:20}},
         comboReadout(210),
         fanArea,
-        h('div',{style:{width:164,flexShrink:0,position:'relative',zIndex:50,display:'flex',flexDirection:'column',gap:8,background:'#0e0b09',border:'1px solid '+C.line,borderRadius:8,padding:'10px 12px'}}, playBtn, discBtn, deckInfo)),
+        h('div',{style:{width:164,flexShrink:0,position:'relative',zIndex:50,display:'flex',flexDirection:'column',gap:8,background:'#0e0b09',border:'1px solid '+clr.line,borderRadius:8,padding:'10px 12px'}}, playBtn, discBtn, deckInfo)),
       logToast);
   }
   renderCard(card, seld, idx){
-    const C=this.CARD,h=React.createElement;
+    const clr=this.CARD,h=React.createElement;
     const dealAnim = (typeof idx==='number') ? {animation:'pmDealUp .42s cubic-bezier(.2,.8,.2,1) backwards', animationDelay:(idx*0.045)+'s'} : {};
     if(card.joker){
       return h('div',{style:{width:60,height:86,borderRadius:6,background:'linear-gradient(160deg,#2a2438,#171320)',
-        border:'2px solid '+(seld?this.C.gold:'#5a4a8a'),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        border:'2px solid '+(seld?this.clr.gold:'#5a4a8a'),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
         boxShadow:seld?'0 0 16px rgba(224,165,59,.6)':'0 4px 8px rgba(0,0,0,.5)',...dealAnim}},
         h('div',{style:{fontSize:30,color:'#caa9ff'}}, '\u2605'),
         h('div',{style:{fontSize:9,letterSpacing:'.1em',color:'#9a86c4',marginTop:4}}, 'JOKER'));
     }
     const red = card.suit==='\u2665'||card.suit==='\u2666';
-    const col=red?C.red:C.ink; const lab=this.rankLabel(card.rank);
-    return h('div',{style:{width:60,height:86,borderRadius:6,background:C.bg,border:'2px solid '+(seld?this.C.gold:C.line),
+    const col=red?clr.red:clr.ink; const lab=this.rankLabel(card.rank);
+    return h('div',{style:{width:60,height:86,borderRadius:6,background:clr.bg,border:'2px solid '+(seld?this.clr.gold:clr.line),
       position:'relative',boxShadow:seld?'0 0 16px rgba(224,165,59,.6)':'0 4px 8px rgba(0,0,0,.5)',...dealAnim}},
       h('div',{style:{position:'absolute',top:4,left:6,fontSize:14,fontWeight:700,color:col,lineHeight:1,textAlign:'center'}}, lab, h('div',{style:{fontSize:11}},card.suit)),
       h('div',{style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:30,color:col}}, card.suit),
@@ -1068,71 +1068,71 @@ class Pathomino extends React.Component {
   }
 
   renderShop(port){
-    const C=this.C,h=React.createElement;
+    const clr=this.C,h=React.createElement;
     const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[],trimCard:null,trimPiece:null,portalReset:null};
-    const gold=this.state.gold;
+    const gold=this.statenemy.gold;
     const tag=(price,sold)=>h('div',{style:{marginBottom:-9,zIndex:2,position:'relative',padding:'3px 9px',borderRadius:5,fontFamily:'Press Start 2P',fontSize:8,letterSpacing:'.02em',
-      background:sold?C.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?C.mut:'#1a1207',border:'1px solid '+(sold?C.line:C.gold2)}}, sold?'VENDU':price+' or');
+      background:sold?clr.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?clr.mut:'#1a1207',border:'1px solid '+(sold?clr.line:clr.gold2)}}, sold?'VENDU':price+' or');
     const offer=(price,sold,afford,onBuy,inner,capW,caption,di)=>h('div',{style:{width:capW,display:'flex',flexDirection:'column',alignItems:'center',animation:'pmScaleIn .4s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.06*(di||0))+'s'}},
       tag(price,sold),
       h('div',{onClick:(!sold&&afford)?onBuy:null,
-        onMouseEnter:e=>{if(!sold&&afford)e.currentTarget.style.transform='translateY(-7px)';},
-        onMouseLeave:e=>e.currentTarget.style.transform='none',
+        onMouseEnter:evt=>{if(!sold&&afford)evt.currentTarget.style.transform='translateY(-7px)';},
+        onMouseLeave:evt=>evt.currentTarget.style.transform='none',
         style:{cursor:(!sold&&afford)?'pointer':'default',opacity:sold?.32:(afford?1:.5),filter:(afford||sold)?'none':'grayscale(.5)',transition:'transform .12s',padding:'10px 0 4px'}}, inner),
       caption||null);
     const jokerCard=(j)=>h('div',{style:{width:78,height:104,borderRadius:8,background:'linear-gradient(165deg,#2a2438,#171320)',border:'2px solid '+j.color,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',boxShadow:'0 5px 12px rgba(0,0,0,.55)'}},
       h('div',{style:{fontSize:32,color:j.color,lineHeight:1}}, j.glyph),
-      h('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'.12em',color:C.mut,marginTop:8}}, 'JOKER'));
-    const pieceCard=(shapeKey)=>h('div',{style:{width:78,height:92,borderRadius:8,background:C.p2,border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,0,14,C.gold));
+      h('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'.12em',color:clr.mut,marginTop:8}}, 'JOKER'));
+    const pieceCard=(shapeKey)=>h('div',{style:{width:78,height:92,borderRadius:8,background:clr.p2,border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,0,14,clr.gold));
     const section=(title,sub,offers)=>h('div',{style:{marginBottom:14}},
       h('div',{style:{display:'flex',alignItems:'baseline',gap:8,marginBottom:7}},
-        h('span',{style:{fontSize:11,letterSpacing:'.16em',color:C.gold,fontWeight:700}}, title),
-        h('span',{style:{fontSize:11,color:C.mut}}, sub)),
-      h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',background:'#0c0a09',border:'1px solid '+C.line,borderRadius:8,padding:'12px 14px',minHeight:96}}, offers.length?offers:h('span',{style:{fontSize:12,color:C.mut,alignSelf:'center'}}, '\u2014 \u00e9puis\u00e9')));
+        h('span',{style:{fontSize:11,letterSpacing:'.16em',color:clr.gold,fontWeight:700}}, title),
+        h('span',{style:{fontSize:11,color:clr.mut}}, sub)),
+      h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,padding:'12px 14px',minHeight:96}}, offers.length?offers:h('span',{style:{fontSize:12,color:clr.mut,alignSelf:'center'}}, '\u2014 \u00e9puis\u00e9')));
 
-    const weaponCard=(w)=>h('div',{style:{width:78,height:92,borderRadius:8,background:'linear-gradient(165deg,#241a10,#140e08)',border:'1.5px solid '+C.gold2,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4}},
-      h('div',{style:{fontSize:32,color:C.gold}},'\u2694'.replace('\u2694',w.glyph||'\u2694')),
-      h('div',{style:{fontSize:8,color:C.mut,letterSpacing:'.1em'}}, 'ARME'));
+    const weaponCard=(w)=>h('div',{style:{width:78,height:92,borderRadius:8,background:'linear-gradient(165deg,#241a10,#140e08)',border:'1.5px solid '+clr.gold2,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4}},
+      h('div',{style:{fontSize:32,color:clr.gold}},'\u2694'.replace('\u2694',w.glyph||'\u2694')),
+      h('div',{style:{fontSize:8,color:clr.mut,letterSpacing:'.1em'}}, 'ARME'));
     const curWep=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
     const weaponOffers=shop.weapons.map((o,i)=>{ const w=this.WEAPONS[o.key]; const afford=gold>=o.price;
       return offer(o.price,o.sold,afford,()=>this.buyShop('weapons',i), weaponCard(w), 100,
         h('div',{style:{textAlign:'center',marginTop:2}},
-          h('div',{style:{fontSize:11,fontWeight:700,color:C.gold}}, w.name),
-          h('div',{style:{fontSize:10,color:C.mut,lineHeight:1.3,marginTop:2}}, w.desc)), i+6); });
+          h('div',{style:{fontSize:11,fontWeight:700,color:clr.gold}}, w.name),
+          h('div',{style:{fontSize:10,color:clr.mut,lineHeight:1.3,marginTop:2}}, w.desc)), i+6); });
     const jokerOffers=shop.jokers.map((o,i)=>{ const j=this.JOKERS[o.key]; const afford=gold>=o.price && this.state.jokers.length<5;
       return offer(o.price,o.sold,afford,()=>this.buyShop('jokers',i), jokerCard(j), 122,
         h('div',{style:{textAlign:'center',marginTop:2}},
           h('div',{style:{fontSize:11,fontWeight:700,color:j.color}}, j.name),
-          h('div',{style:{fontSize:10,color:C.mut,lineHeight:1.3,marginTop:2}}, j.desc)), i); });
+          h('div',{style:{fontSize:10,color:clr.mut,lineHeight:1.3,marginTop:2}}, j.desc)), i); });
     const pieceOffers=shop.pieces.map((o,i)=>{ const afford=gold>=o.price && this.state.hand.length<this.HAND_MAX;
       return offer(o.price,o.sold,afford,()=>this.buyShop('pieces',i), pieceCard(o.shape), 86, null, i+2); });
     const cardOffers=shop.cards.map((o,i)=>{ const afford=gold>=o.price;
       return offer(o.price,o.sold,afford,()=>this.buyShop('cards',i), this.renderCard({rank:o.rank,suit:o.suit},false), 72, null, i+4); });
     const trimCardOffer=shop.trimCard ? offer(shop.trimCard.price,shop.trimCard.sold,gold>=shop.trimCard.price,()=>this.buyShop('trimCard'),
-      h('div',{style:{width:60,height:86,borderRadius:6,background:'#1a0f0c',border:'2px dashed '+C.red,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:C.red}},'✂'),
-      72, h('div',{style:{fontSize:10,color:C.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une carte du deck'), 7) : null;
+      h('div',{style:{width:60,height:86,borderRadius:6,background:'#1a0f0c',border:'2px dashed '+clr.red,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:clr.red}},'✂'),
+      72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une carte du deck'), 7) : null;
     const trimPieceOffer=shop.trimPiece ? offer(shop.trimPiece.price,shop.trimPiece.sold,gold>=shop.trimPiece.price,()=>this.buyShop('trimPiece'),
-      h('div',{style:{width:60,height:60,borderRadius:6,background:'#0e1a0e',border:'2px dashed '+C.green,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:C.green}},'✂'),
-      72, h('div',{style:{fontSize:10,color:C.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une pièce de main'), 8) : null;
+      h('div',{style:{width:60,height:60,borderRadius:6,background:'#0e1a0e',border:'2px dashed '+clr.green,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:clr.green}},'✂'),
+      72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une pièce de main'), 8) : null;
 
     const ownedJk=h('div',{style:{display:'flex',gap:6,alignItems:'center'}},
-      h('span',{style:{fontSize:11,color:C.mut,marginRight:2}}, 'Jokers '+this.state.jokers.length+'/5'),
+      h('span',{style:{fontSize:11,color:clr.mut,marginRight:2}}, 'Jokers '+this.state.jokers.length+'/5'),
       this.state.jokers.length? this.state.jokers.map((k,i)=>{ const j=this.JOKERS[k];
         return h('div',{key:i,title:j.name+' \u2014 '+j.desc,style:{width:28,height:28,borderRadius:6,background:'#171320',border:'1px solid '+j.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,color:j.color}}, j.glyph); })
-        : h('span',{style:{fontSize:11,color:C.line2}}, 'aucun'));
+        : h('span',{style:{fontSize:11,color:clr.line2}}, 'aucun'));
 
-    return h('div',{style:{animation:'pmFade .4s ease',width:port?452:860,padding:port?16:24,background:C.p1,border:'1px solid '+C.line,borderRadius:10}},
+    return h('div',{style:{animation:'pmFade .4s ease',width:port?452:860,padding:port?16:24,background:clr.p1,border:'1px solid '+clr.line,borderRadius:10}},
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
         h('div',null,
-          h('div',{className:'pm-pixel',style:{fontSize:20,color:C.gold,textShadow:'0 3px 0 #6e4a1a'}}, 'BOUTIQUE'),
-          h('div',{style:{fontSize:12,color:C.mut,marginTop:6}}, 'Achète directement \u2014 tu vois ce que tu prends.')),
+          h('div',{className:'pm-pixel',style:{fontSize:20,color:clr.gold,textShadow:'0 3px 0 #6e4a1a'}}, 'BOUTIQUE'),
+          h('div',{style:{fontSize:12,color:clr.mut,marginTop:6}}, 'Achète directement \u2014 tu vois ce que tu prends.')),
         h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}},
-          this.statChip('coin', gold+' or', C.gold), ownedJk)),
+          this.statChip('coin', gold+' or', clr.gold), ownedJk)),
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?12:16,alignItems:'stretch'}},
         h('div',{style:{width:port?'100%':128,flexShrink:0,display:'flex',flexDirection:port?'row':'column',gap:8,flexWrap:'wrap',alignItems:port?'center':'stretch'}},
           h('div',{style:{flex:port?'1':'none',minWidth:port?120:'auto'}}, this.btn('\u00c9tage suivant \u2192', ()=>this.leaveShop(), {primary:true,wide:true,small:true})),
           h('div',{style:{flex:port?'1':'none',minWidth:port?120:'auto'}}, this.btn('Reroll \u00b7 5 or', ()=>this.rerollShop(), {wide:true,small:true,disabled:gold<5})),
-          h('div',{style:{fontSize:11,color:C.mut,lineHeight:1.5,marginTop:port?0:6,flexBasis:port?'100%':'auto'}}, 'L\u2019or ne se conserve pas entre les runs. Les jokers sont passifs : ils restent actifs en combat.')),
+          h('div',{style:{fontSize:11,color:clr.mut,lineHeight:1.5,marginTop:port?0:6,flexBasis:port?'100%':'auto'}}, 'L\u2019or ne se conserve pas entre les runs. Les jokers sont passifs : ils restent actifs en combat.')),
         h('div',{style:{flex:1}},
           section('JOKERS', 'passifs \u2014 amplifient tes pouvoirs', jokerOffers),
           section('PI\u00c8CES', 't\u00e9trominos pour ta main', pieceOffers),
@@ -1140,8 +1140,8 @@ class Pathomino extends React.Component {
           section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers),
           (()=>{
             const portalResetOffer=shop.portalReset?offer(shop.portalReset.price,shop.portalReset.sold,gold>=shop.portalReset.price,()=>this.buyShop('portalReset'),
-              h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+C.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:C.blue}},'\u29bf'),
-              72, h('div',{style:{fontSize:10,color:C.mut,marginTop:2,textAlign:'center'}}, 'Recharger le portail'), 9):null;
+              h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+clr.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:clr.blue}},'\u29bf'),
+              72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Recharger le portail'), 9):null;
             const elaguerOffers=[trimCardOffer,trimPieceOffer,portalResetOffer].filter(Boolean);
             return elaguerOffers.length>0?section('\u00c9LAGUER', 'all\u00e8ge tes decks', elaguerOffers):null;
           })()
@@ -1151,21 +1151,21 @@ class Pathomino extends React.Component {
   }
 
   renderResult(){
-    const C=this.C,h=React.createElement;
-    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',width:520,padding:'40px 36px',background:'linear-gradient(180deg,#211712,#140d0b)',border:'1px solid '+C.line,borderRadius:12}},
-      h('div',{className:'pm-pixel',style:{fontSize:30,color:C.red,textShadow:'0 4px 0 #2a0f0c',marginBottom:10,animation:'pmSlamIn .55s cubic-bezier(.3,1.4,.5,1) backwards'}}, 'GAME OVER'),
-      h('p',{style:{color:C.mut,fontSize:14,marginBottom:28}}, 'Le donjon t\u2019a eu. Une seule vie — tout recommence.'),
+    const clr=this.C,h=React.createElement;
+    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',width:520,padding:'40px 36px',background:'linear-gradient(180deg,#211712,#140d0b)',border:'1px solid '+clr.line,borderRadius:12}},
+      h('div',{className:'pm-pixel',style:{fontSize:30,color:clr.red,textShadow:'0 4px 0 #2a0f0c',marginBottom:10,animation:'pmSlamIn .55s cubic-bezier(.3,1.4,.5,1) backwards'}}, 'GAME OVER'),
+      h('p',{style:{color:clr.mut,fontSize:14,marginBottom:28}}, 'Le donjon t\u2019a eu. Une seule vie — tout recommence.'),
       h('div',{style:{display:'flex',justifyContent:'center',gap:40,marginBottom:28}},
-        h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:C.gold,animation:'pmPop .5s ease backwards',animationDelay:'.3s'}}, this.state.bossesBeaten),
-          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'BOSS VAINCUS')),
-        h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:C.text,animation:'pmPop .5s ease backwards',animationDelay:'.42s'}}, this.state.best),
-          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'MEILLEUR SCORE')),
+        h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:clr.gold,animation:'pmPop .5s ease backwards',animationDelay:'.3s'}}, this.state.bossesBeaten),
+          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:clr.mut,marginTop:8}}, 'BOSS VAINCUS')),
+        h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:clr.text,animation:'pmPop .5s ease backwards',animationDelay:'.42s'}}, this.state.best),
+          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:clr.mut,marginTop:8}}, 'MEILLEUR SCORE')),
         h('div',null,
-          h('div',{className:'pm-pixel',style:{fontSize:38,color:C.blue,animation:'pmPop .5s ease backwards',animationDelay:'.54s'}}, this.state.floor),
-          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'ÉTAGE ATTEINT'))),
-      h('div',{style:{fontSize:12,color:C.mut,marginBottom:16}},
+          h('div',{className:'pm-pixel',style:{fontSize:38,color:clr.blue,animation:'pmPop .5s ease backwards',animationDelay:'.54s'}}, this.state.floor),
+          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:clr.mut,marginTop:8}}, 'ÉTAGE ATTEINT'))),
+      h('div',{style:{fontSize:12,color:clr.mut,marginBottom:16}},
         'Joué avec : '+( this.state.char ? this.CHARS[this.state.char].name : '—')),
-      this.state.newUnlock? h('div',{style:{background:'rgba(134,180,106,.12)',border:'1px solid '+C.green,borderRadius:6,padding:'12px 16px',marginBottom:22,color:C.green,fontSize:13,fontWeight:600}}, '\u2605 ROI VAINCU — Le Voleur est débloqué !') : null,
+      this.state.newUnlock? h('div',{style:{background:'rgba(134,180,106,.12)',border:'1px solid '+clr.green,borderRadius:6,padding:'12px 16px',marginBottom:22,color:clr.green,fontSize:13,fontWeight:600}}, '\u2605 ROI VAINCU — Le Voleur est débloqué !') : null,
       this.btn('Nouveau run \u2192', ()=>this.setState({screen:'select'}), {primary:true,wide:true})
     );
   }
@@ -1179,33 +1179,33 @@ class Pathomino extends React.Component {
     const scale=port? this.fitScale(528,1040) : this.fitScale(1092,690);
     const u=Math.max(8, Math.round(cell*scale)-2);
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
-      this.miniPiece(piece.key, s.rot, u, this.C.gold2));
+      this.miniPiece(piecevt.key, s.rot, u, this.clr.gold2));
   }
   miniCells(cells,u,color,gap){ const h=React.createElement;
     const set=new Set(cells.map(c=>c.join(','))); const rows=Math.max(...cells.map(c=>c[0]))+1, cols=Math.max(...cells.map(c=>c[1]))+1; const out=[];
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ out.push(h('div',{key:r+','+c,style:{width:u,height:u,borderRadius:2,
-      background:set.has(r+','+c)?color:'#1a1614',border:'1px solid '+(set.has(r+','+c)?color:this.C.line)}})); }
+      background:set.has(r+','+c)?color:'#1a1614',border:'1px solid '+(set.has(r+','+c)?color:this.clr.line)}})); }
     return h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u+2}px)`,gap:gap||3}}, out); }
-  renderMute(){ const C=this.C,h=React.createElement;
+  renderMute(){ const clr=this.C,h=React.createElement;
     return h('button',{onClick:()=>this.toggleMute(), title:this.state.muted?'Activer le son':'Couper le son',
       style:{position:'fixed',top:10,right:10,zIndex:500,width:38,height:38,borderRadius:8,cursor:'pointer',
-        background:'rgba(14,11,9,.8)',border:'1px solid '+C.line2,color:this.state.muted?C.mut:C.gold,fontSize:17,display:'flex',alignItems:'center',justifyContent:'center'}},
+        background:'rgba(14,11,9,.8)',border:'1px solid '+clr.line2,color:this.state.muted?clr.mut:clr.gold,fontSize:17,display:'flex',alignItems:'center',justifyContent:'center'}},
       this.state.muted?'\u{1F507}':'\u{1F50A}'); }
-  renderTuto(){ const C=this.C,h=React.createElement;
+  renderTuto(){ const clr=this.C,h=React.createElement;
     if(!this.state.showTuto || this.state.screen!=='plan') return null;
     const step=(ic,title,body)=>h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',textAlign:'left',marginBottom:14}},
-      h('div',{style:{flexShrink:0,width:34,height:34,borderRadius:8,background:'#0e0b09',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:C.gold}}, ic),
-      h('div',null, h('div',{style:{fontSize:13,fontWeight:700,color:C.text,marginBottom:3}}, title),
-        h('div',{style:{fontSize:12,color:C.mut,lineHeight:1.5}}, body)));
-    const ok=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[0,1]],14,C.green), h('span',{style:{color:C.green,fontSize:13,fontWeight:700}}, '✓ reliées (côté)'));
-    const no=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[1,1]],14,C.red), h('span',{style:{color:C.red,fontSize:13,fontWeight:700}}, '✗ non reliées (coin)'));
+      h('div',{style:{flexShrink:0,width:34,height:34,borderRadius:8,background:'#0e0b09',border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center',color:clr.gold}}, ic),
+      h('div',null, h('div',{style:{fontSize:13,fontWeight:700,color:clr.text,marginBottom:3}}, title),
+        h('div',{style:{fontSize:12,color:clr.mut,lineHeight:1.5}}, body)));
+    const ok=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[0,1]],14,clr.green), h('span',{style:{color:clr.green,fontSize:13,fontWeight:700}}, '✓ reliées (côté)'));
+    const no=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[1,1]],14,clr.red), h('span',{style:{color:clr.red,fontSize:13,fontWeight:700}}, '✗ non reliées (coin)'));
     return h('div',{style:{position:'fixed',inset:0,zIndex:450,background:'rgba(5,4,3,.78)',display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:()=>this.closeTuto()},
-      h('div',{onClick:(e)=>e.stopPropagation(),style:{width:'100%',maxWidth:420,background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+C.line,borderRadius:12,padding:'26px 24px',boxShadow:'0 30px 80px rgba(0,0,0,.6)',animation:'pmFade .3s ease'}},
-        h('div',{className:'pm-pixel',style:{fontSize:14,color:C.gold,textAlign:'center',marginBottom:18}}, 'COMMENT JOUER'),
-        step(this.icon('flag',18,C.gold),'Trace ton chemin','Relie le Départ à la Clé puis à la Porte en posant tes pièces sur la grille.'),
-        step(this.icon('rotate',18,C.gold),'Pose une pièce','Touche une pièce, vise une case, clique pour la poser. Molette / clic droit / R pour pivoter.'),
+      h('div',{onClick:(evt)=>evt.stopPropagation(),style:{width:'100%',maxWidth:420,background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+clr.line,borderRadius:12,padding:'26px 24px',boxShadow:'0 30px 80px rgba(0,0,0,.6)',animation:'pmFade .3s ease'}},
+        h('div',{className:'pm-pixel',style:{fontSize:14,color:clr.gold,textAlign:'center',marginBottom:18}}, 'COMMENT JOUER'),
+        step(this.icon('flag',18,clr.gold),'Trace ton chemin','Relie le Départ à la Clé puis à la Porte en posant tes pièces sur la grille.'),
+        step(this.icon('rotate',18,clr.gold),'Pose une pièce','Touche une pièce, vise une case, clique pour la poser. Molette / clic droit / R pour pivoter.'),
         step('⚠','Relie par les côtés','Les pièces ne se connectent que si elles se touchent par un côté — jamais par un coin.'),
-        h('div',{style:{display:'flex',justifyContent:'center',gap:22,margin:'6px 0 20px',padding:'12px',background:'#0c0a09',borderRadius:8,border:'1px solid '+C.line}}, ok, no),
+        h('div',{style:{display:'flex',justifyContent:'center',gap:22,margin:'6px 0 20px',padding:'12px',background:'#0c0a09',borderRadius:8,border:'1px solid '+clr.line}}, ok, no),
         this.btn('Compris, jouer →', ()=>this.closeTuto(), {primary:true,wide:true})));
   }
   renderVals(){
