@@ -74,8 +74,8 @@ class Pathomino extends React.Component {
     php:100, pmax:100,
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
-    voleurUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
-    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0
+    voleurUnlocked:false, mageUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
+    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0
   };
 
   loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
@@ -577,38 +577,71 @@ class Pathomino extends React.Component {
 
   renderSelect(port){
     const C=this.C, h=React.createElement;
-    const cards = ['chevalier','mage','voleur'].map((k,ci)=>{
-      const c=this.CHARS[k]; const locked = k==='voleur' && !this.state.voleurUnlocked;
-      const stats=[['Vie',c.vie],['Force',c.force],['Défense',c.defense],['Magie',c.magie],['Vitesse',c.vitesse]];
-      return h('div',{key:k, onClick:locked?null:()=>this.startRun(k),
-        onMouseEnter:e=>{if(!locked){e.currentTarget.style.transform='translateY(-8px)';e.currentTarget.style.borderColor=c.color;}},
-        onMouseLeave:e=>{e.currentTarget.style.transform='none';e.currentTarget.style.borderColor=C.line;},
-        style:{width:236,background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+C.line,borderRadius:6,
-          padding:'26px 22px',cursor:locked?'not-allowed':'pointer',transition:'transform .18s,border-color .18s',
-          animation:'pmRise .5s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.08+ci*0.1)+'s',
-          position:'relative',opacity:locked?.62:1,filter:locked?'grayscale(.5)':'none'}},
-        h('div',{style:{position:'absolute',top:14,right:16,fontSize:9,letterSpacing:'.18em',color:locked?C.mut:c.color,fontWeight:600}}, c.tag),
-        h('div',{style:{width:74,height:74,borderRadius:'50%',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:locked?C.mut:c.color,marginBottom:18,background:'#0e0b09'}},
-          locked? this.icon('lock',30,C.mut) : this.icon(c.icon,38,c.color)),
-        h('div',{className:'pm-pixel',style:{fontSize:14,color:C.text,marginBottom:10,lineHeight:1.4}}, c.name),
-        h('div',{style:{fontSize:13,color:C.mut,lineHeight:1.5,minHeight:58,marginBottom:16}}, c.desc),
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr',gap:6}}, stats.map(([lab,v])=>
-          h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:8,fontSize:12}},
-            h('span',{style:{width:54,color:C.mut}},lab),
+    const keys=['chevalier','mage','voleur'];
+    const ci=this.state.charIdx||0;
+    const k=keys[ci]; const c=this.CHARS[k];
+    const locked = k==='voleur' && !this.state.voleurUnlocked;
+    const mageLocked = k==='mage' && !this.state.mageUnlocked;
+    const isLocked = locked || mageLocked;
+
+    const nav=(dir)=>this.setState(s=>({charIdx:((s.charIdx||0)+dir+3)%3}));
+
+    const statMaxes={Vie:120,Force:18,Défense:18,Magie:18,Vitesse:18};
+    const stats=[['Vie',c.vie],['Force',c.force],['Équilibre',c.defense],['Magie',c.magie],['Vitesse',c.vitesse]];
+
+    const statsEl = isLocked && k==='voleur' ?
+      h('div',{style:{fontSize:13,color:C.mut,marginTop:12,letterSpacing:'.1em'}}, '?  ?  ?  ?  ?') :
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr',gap:5,marginTop:14,width:port?260:300}},
+        stats.map(([lab,v])=>{
+          const maxV=lab==='Vie'?120:18;
+          return h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:8,fontSize:12}},
+            h('span',{style:{width:58,color:C.mut}},lab),
             h('div',{style:{flex:1,height:5,background:'#0e0b09',borderRadius:3,overflow:'hidden'}},
-              h('div',{style:{height:'100%',width:Math.min(100,(v/(lab==='Vie'?120:18))*100)+'%',background:locked?C.mut:c.color,borderRadius:3}})),
-            h('span',{style:{width:26,textAlign:'right',color:C.text,fontWeight:600}}, v)))),
-        h('div',{style:{marginTop:18,textAlign:'center',fontSize:11,letterSpacing:'.14em',color:locked?C.mut:C.gold,fontWeight:600}},
-          locked?'BATTRE LE ROI POUR DÉBLOQUER':'CHOISIR \u2192'),
-        h('div',{style:{position:'absolute',bottom:14,left:22,fontSize:11,color:C.mut}}, k==='voleur'?'Pentaminos · 12 formes':'Tétrominos · 7 formes')
-      );
-    });
-    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'12px 8px':24,maxWidth:port?340:880}},
-      h('div',{style:{fontSize:11,letterSpacing:'.5em',color:C.gold,marginBottom:14}}, 'PUZZLE \u00B7 ROGUELIKE \u00B7 DONJON'),
-      h('h1',{className:'pm-pixel',style:{fontSize:port?30:46,lineHeight:1.1,color:C.text,textShadow:'0 4px 0 #2a211a, 0 0 30px rgba(224,165,59,.25)',marginBottom:10}}, 'PATHOMINO'),
-      h('p',{style:{color:C.mut,fontSize:15,maxWidth:520,margin:'0 auto 4px'}}, 'Trace ton chemin avec des pièces géométriques. Combats avec des cartes. Survis le plus longtemps possible.'),
-      this.state.best>0 ? h('p',{style:{color:C.gold,fontSize:13,margin:'10px auto 0',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
-      h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?14:24,justifyContent:'center',alignItems:'center',marginTop:port?20:34,flexWrap:'wrap'}}, cards)
+              h('div',{style:{height:'100%',width:Math.min(100,(v/maxV)*100)+'%',background:isLocked?C.mut:c.color,borderRadius:3,transition:'width .3s'}})),
+            h('span',{style:{width:26,textAlign:'right',color:isLocked?C.mut:C.text,fontWeight:600}}, isLocked&&k==='voleur'?'?':v));
+        }));
+
+    const lockMsg = locked ? 'Bats le Roi pour débloquer' : mageLocked ? 'Bats le premier boss pour débloquer' : null;
+    const desc = k==='chevalier'?'Tank. Encaisse tout.':k==='mage'?'Fragile. Puissant. Un portail par étage.':'Agile. Esquive souvent.';
+
+    const spriteEl = isLocked && k==='voleur' ?
+      h('div',{style:{width:130,height:140,display:'flex',alignItems:'center',justifyContent:'center',fontSize:72,color:C.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
+      h('div',{style:{opacity:isLocked?.4:1}}, this.pixelSprite(k, 10));
+
+    const card = h('div',{
+      onTouchStart:(e)=>{ this._swipeX=e.touches[0].clientX; },
+      onTouchEnd:(e)=>{ const dx=e.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); },
+      style:{display:'flex',flexDirection:'column',alignItems:'center',gap:10,padding:port?'20px 16px':'26px 28px',
+        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?C.line:c.color),borderRadius:10,
+        width:port?290:320,minHeight:460,animation:'pmFade .3s ease',transition:'border-color .3s'}},
+      spriteEl,
+      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?C.mut:C.text}}, isLocked&&k==='voleur'?'???':c.name),
+      lockMsg ?
+        h('div',{style:{fontSize:12,color:C.mut,fontStyle:'italic',textAlign:'center'}}, lockMsg) :
+        h('div',{style:{fontSize:13,color:C.mut,textAlign:'center'}}, desc),
+      statsEl,
+      isLocked ? null : h('div',{style:{marginTop:'auto',width:'100%',paddingTop:12}},
+        this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true}))
+    );
+
+    const dots = h('div',{style:{display:'flex',gap:8,justifyContent:'center',marginTop:14}},
+      keys.map((_,i)=>h('div',{key:i,onClick:()=>this.setState({charIdx:i}),
+        style:{width:i===ci?20:8,height:8,borderRadius:4,background:i===ci?C.gold:C.line2,cursor:'pointer',transition:'width .2s'}})));
+
+    const arrow=(dir,label)=>h('button',{onClick:()=>nav(dir),
+      style:{background:'none',border:'1px solid '+C.line2,color:C.mut,width:42,height:42,borderRadius:6,
+        cursor:'pointer',fontSize:20,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
+        transition:'border-color .15s'},
+      onMouseEnter:e=>e.currentTarget.style.borderColor=C.gold,
+      onMouseLeave:e=>e.currentTarget.style.borderColor=C.line2}, label);
+
+    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'12px 8px':24,maxWidth:port?360:820}},
+      h('div',{style:{fontSize:11,letterSpacing:'.5em',color:C.gold,marginBottom:18}}, 'CHOISIR TON HÉROS'),
+      this.state.best>0 ? h('p',{style:{color:C.gold,fontSize:12,margin:'0 auto 16px',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',gap:port?8:18}},
+        arrow(-1,'←'), card, arrow(1,'→')),
+      dots,
+      h('div',{style:{fontSize:11,color:C.mut,marginTop:10}}, (ci+1)+' / '+keys.length)
     );
   }
 
