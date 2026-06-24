@@ -4,7 +4,7 @@ class Pathomino extends React.Component {
     const v = this.renderVals();
     return h('div', {id:'pm-root'},
       v.introEl, v.homeEl, v.authEl, v.selectEl, v.planEl,
-      v.combatEl, v.shopEl, v.resultEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
+      v.combatEl, v.shopEl, v.resultEl, v.hudEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
   }
 
   C = {ink:'#0e0c0b',p1:'#1b1715',p2:'#241f1b',p3:'#2f2823',line:'#3a342e',line2:'#4c443b',text:'#ece4d6',mut:'#8d8377',gold:'#e0a53b',gold2:'#f3c976',red:'#cf5040',green:'#86b46a',blue:'#6f9bca'};
@@ -871,6 +871,27 @@ class Pathomino extends React.Component {
     return h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:13,fontWeight:600,color:C.text}},
       this.icon(ic,16,col), val); }
 
+  renderHud(){
+    const C=this.C,h=React.createElement; const s=this.state;
+    if(!s.char) return null;
+    const phpPct=Math.max(0,Math.min(100,(s.php/s.pmax)*100));
+    const hpCol=phpPct>50?C.green:phpPct>25?C.gold:C.red;
+    return h('div',{style:{position:'fixed',top:0,left:0,right:0,zIndex:300,
+      background:'rgba(14,11,9,.93)',borderBottom:'1px solid '+C.line,
+      display:'flex',alignItems:'center',gap:14,padding:'5px 14px',fontFamily:'Space Grotesk, sans-serif'}},
+      h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+        this.icon('heart',14,hpCol),
+        h('div',{style:{width:72,height:6,background:'#0e0b09',borderRadius:3,overflow:'hidden'}},
+          h('div',{style:{height:'100%',width:phpPct+'%',background:hpCol,borderRadius:3,transition:'width .3s'}})),
+        h('span',{style:{fontSize:11,color:C.mut,minWidth:52}}, s.php+'/'+s.pmax)),
+      s.poisoned ? h('span',{style:{fontSize:13,color:C.green,title:'Empoisonn\u00e9'}}, '\u2620') : null,
+      h('div',{style:{width:'1px',height:16,background:C.line}}),
+      this.statChip('coin', s.gold+' or', C.gold),
+      h('div',{style:{width:'1px',height:16,background:C.line}}),
+      h('span',{style:{fontSize:11,color:C.mut}}, '\u00c9tage\u00a0'+s.floor),
+      h('span',{style:{fontSize:11,color:C.mut}}, s.bossesBeaten+'/5 boss'));
+  }
+
   renderCombat(port){
     const C=this.C,h=React.createElement; const e=this.state.enemy; if(!e) return h('div',null);
     const ch=this.CHARS[this.state.char];
@@ -1147,6 +1168,7 @@ class Pathomino extends React.Component {
       combatEl:s.screen==='combat'?this.scaleWrap(this.renderCombat(port), port?464:920, port?884:600):null,
       shopEl:s.screen==='shop'?this.scaleWrap(this.renderShop(port), port?452:884, port?908:712):null,
       resultEl:s.screen==='result'?this.scaleWrap(this.renderResult(),520,470):null,
+      hudEl:(s.screen==='plan'||s.screen==='combat'||s.screen==='shop')?this.renderHud():null,
       dragOverlay:this.renderDragOverlay(),
       tutoOverlay:this.renderTuto(),
       muteBtn:this.renderMute()
