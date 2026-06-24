@@ -81,7 +81,8 @@ class Pathomino extends React.Component {
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
     voleurUnlocked:false, mageUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], weapon:null, shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
-    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false
+    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false,
+    portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false
   };
 
   loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
@@ -269,7 +270,8 @@ class Pathomino extends React.Component {
       for(let i=0;i<this.FLOOR_REFILL && hand.length<this.HAND_MAX;i++) hand.push(this.drawPiece());
     }
     this.setState({
-      grid:{n,start,key,door,pawns,boss,treasure,holes,traps,foods,potions}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR
+      grid:{n,start,key,door,pawns,boss,treasure,holes,traps,foods,potions}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR,
+      portalA:null, portalB:null, selectingPortal:false
     });
   }
   drawPiece(){
@@ -322,6 +324,15 @@ class Pathomino extends React.Component {
     while(q.length){ const[r,c]=q.shift();
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r+dr,nc=c+dc,k=nr+','+nc;
         if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[k]&&!seen.has(k)){seen.add(k);q.push([nr,nc]);} }); }
+    const pa=this.state.portalA, pb=this.state.portalB;
+    if(pa&&pb){ const ak=pa.join(','),bk=pb.join(',');
+      if(seen.has(ak)&&m[bk]&&!seen.has(bk)){ seen.add(bk); const q2=[pb]; while(q2.length){ const[r2,c2]=q2.shift();
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r2+dr,nc=c2+dc,kk=nr+','+nc;
+          if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[kk]&&!seen.has(kk)){seen.add(kk);q2.push([nr,nc]);} }); } }
+      else if(seen.has(bk)&&m[ak]&&!seen.has(ak)){ seen.add(ak); const q3=[pa]; while(q3.length){ const[r2,c2]=q3.shift();
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r2+dr,nc=c2+dc,kk=nr+','+nc;
+          if(nr>=0&&nc>=0&&nr<n&&nc<n&&m[kk]&&!seen.has(kk)){seen.add(kk);q3.push([nr,nc]);} }); } }
+    }
     if(!seen.has(g.key.join(','))||!seen.has(g.door.join(','))) return {ok:false, reason:'Le chemin doit relier départ → clé → porte'};
     return {ok:true};
   }
@@ -541,9 +552,15 @@ class Pathomino extends React.Component {
     const weapons=pick(wepKeys,Math.min(2,wepKeys.length)).map(k=>({key:k,price:this.WEAPONS[k].price,sold:false}));
     const trimCard = this.state.deck.length>10 ? {type:'trimCard',price:8,sold:false} : null;
     const trimPiece = this.state.hand.length>3 ? {type:'trimPiece',price:6,sold:false} : null;
-    return {jokers,pieces,cards,weapons,trimCard,trimPiece};
+    const portalReset=this.state.char==='mage'&&this.state.portalUsed?{type:'portalReset',price:16,sold:false}:null;
+    return {jokers,pieces,cards,weapons,trimCard,trimPiece,portalReset};
   }
   buyShop(cat,i){ const s=this.state; if(!s.shop) return;
+    if(cat==='portalReset'){
+      const o=s.shop[cat]; if(!o||o.sold||s.gold<o.price) return;
+      const shop={...s.shop,portalReset:{...o,sold:true}};
+      this.sfx('buy'); this.setState({gold:s.gold-o.price,portalUsed:false,portalRecharge:0,shop}); return;
+    }
     if(cat==='trimCard'||cat==='trimPiece'){
       const o=s.shop[cat]; if(!o||o.sold||s.gold<o.price) return;
       if(cat==='trimCard'){
@@ -767,16 +784,20 @@ class Pathomino extends React.Component {
       let bg='#13100e', bd=C.line, bstyle='solid';
       if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
         else { bg='#241f1a'; bd=C.line2; bstyle='dashed'; } }
-      if(isFood && !placed){ bg='rgba(160,50,50,.2)'; bd='#7a3a3a'; }
-      if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
-      if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
-      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
-      if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
       const isTreasure = g.treasure && this.eq(g.treasure,[r,c]);
       const isHole=(g.holes||[]).some(p=>this.eq(p,[r,c]));
       const isTrap=(g.traps||[]).some(p=>this.eq(p,[r,c]));
       const isFood=(g.foods||[]).some(p=>this.eq(p,[r,c]));
       const isPotion=(g.potions||[]).some(p=>this.eq(p,[r,c]));
+      const isPortalA=this.state.portalA&&this.eq(this.state.portalA,[r,c]);
+      const isPortalB=this.state.portalB&&this.eq(this.state.portalB,[r,c]);
+      if(isFood && !placed){ bg='rgba(160,50,50,.2)'; bd='#7a3a3a'; }
+      if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
+      if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
+      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
+      if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
+      if(isPortalA||isPortalB){ bd=C.blue; bstyle='solid'; bg='rgba(111,155,202,.22)'; }
+      if(this.state.selectingPortal&&!placed&&!isHole){ bd=C.blue; bstyle='dashed'; }
       let content=null;
       if(isFood && !placed) content=h('span',{style:{fontSize:cell*.5,color:'#d96060',filter:'drop-shadow(0 0 3px rgba(220,80,80,.5))'}}, '\u2665');
       else if(isPotion && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#a06ad0',filter:'drop-shadow(0 0 3px rgba(160,100,220,.5))'}}, '\u2697');
@@ -788,10 +809,18 @@ class Pathomino extends React.Component {
       else if(isKey) content=this.icon('key',cell*.52, C.gold2);
       else if(isDoor) content= g.boss? h('span',{style:{fontSize:cell*.62,lineHeight:1,color:placed?C.red:'#b98', filter:'drop-shadow(0 0 4px rgba(207,80,64,.5))'}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : this.icon('door',cell*.55, placed?C.gold2:C.text);
       else if(isTreasure) content=this.icon('chest',cell*.56, placed?C.gold2:C.gold);
+      if(isPortalA||isPortalB) content=h('span',{style:{fontSize:cell*.38,color:C.blue,fontWeight:900,filter:'drop-shadow(0 0 3px rgba(111,155,202,.7))'}},isPortalA?'A':'B');
       cells.push(h('div',{key:k,
         'data-rc':r+','+c,
         onMouseEnter:()=>this.hoverCell(r,c),
-        onClick:()=>{ if(this.state.selPiece===null && m[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c); },
+        onClick:()=>{
+          if(this.state.selectingPortal&&!this.state.executing){
+            if(!this.state.portalA){ this.setState({portalA:[r,c]}); return; }
+            if(!this.eq(this.state.portalA,[r,c])){ this.setState({portalB:[r,c],portalUsed:true,selectingPortal:false,portalRecharge:this.state.floor+2}); this.sfx('valid'); return; }
+            return;
+          }
+          if(this.state.selPiece===null && m[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c);
+        },
         style:{width:cell,height:cell,background:bg,border:'1px '+bstyle+' '+bd,borderRadius:3,
           display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
           cursor:this.state.selPiece!==null?'pointer':'default',
@@ -857,7 +886,11 @@ class Pathomino extends React.Component {
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
           this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
-            this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length})),
+            this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
+            this.state.char==='mage'?this.btn(
+              this.state.selectingPortal?'Annuler portail':(this.state.portalUsed?'\u29bf Portail (\u00e9t.'+this.state.portalRecharge+')':'\u29bf Portail'),
+              ()=>{ if(!this.state.portalUsed||this.state.selectingPortal) this.setState(s=>({selectingPortal:!s.selectingPortal,portalA:null})); },
+              {small:true,disabled:this.state.portalUsed&&!this.state.selectingPortal}):null),
           h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
           h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
           hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12}}, 'Pièces non reliées') : null,
@@ -1028,7 +1061,7 @@ class Pathomino extends React.Component {
 
   renderShop(port){
     const C=this.C,h=React.createElement;
-    const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[],trimCard:null,trimPiece:null};
+    const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[],trimCard:null,trimPiece:null,portalReset:null};
     const gold=this.state.gold;
     const tag=(price,sold)=>h('div',{style:{marginBottom:-9,zIndex:2,position:'relative',padding:'3px 9px',borderRadius:5,fontFamily:'Press Start 2P',fontSize:8,letterSpacing:'.02em',
       background:sold?C.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?C.mut:'#1a1207',border:'1px solid '+(sold?C.line:C.gold2)}}, sold?'VENDU':price+' or');
@@ -1097,7 +1130,12 @@ class Pathomino extends React.Component {
           section('PI\u00c8CES', 't\u00e9trominos pour ta main', pieceOffers),
           section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers),
           section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers),
-          section('\u00c9LAGUER', 'all\u00e8ge tes decks', [trimCardOffer,trimPieceOffer].filter(Boolean)))));
+          section('\u00c9LAGUER', 'all\u00e8ge tes decks', (()=>{
+            const portalResetOffer=shop.portalReset?offer(shop.portalReset.price,shop.portalReset.sold,gold>=shop.portalReset.price,()=>this.buyShop('portalReset'),
+              h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+C.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:C.blue}},'\u29bf'),
+              72, h('div',{style:{fontSize:10,color:C.mut,marginTop:2,textAlign:'center'}}, 'Recharger le portail'), 9):null;
+            return [trimCardOffer,trimPieceOffer,portalResetOffer].filter(Boolean);
+          })()))));
   }
 
   renderResult(){
