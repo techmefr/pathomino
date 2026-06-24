@@ -504,19 +504,17 @@ class Pathomino extends React.Component {
   renderHome(port){
     const C=this.C,h=React.createElement; const acc=this.state.account;
     const feats=[
-      {ic:'flag',title:'Trace ton chemin',desc:'Pose des tétrominos pour relier la clé à la porte. Chaque étage est un puzzle de placement.',col:C.gold},
-      {ic:'deck',title:'Combats de cartes',desc:'Mains de poker à la Balatro, pouvoirs de famille à la Regicide. Deux decks à bâtir.',col:C.blue},
-      {ic:'heart',title:'Roguelike, une seule vie',desc:'Boss d\u2019échecs, boutique entre étages, permadeath. Survis le plus longtemps possible.',col:C.red}
+      {ic:'flag',title:'Trace le chemin',col:C.gold},
+      {ic:'deck',title:'Combat de cartes',col:C.blue},
+      {ic:'heart',title:'Une seule vie',col:C.red}
     ];
     const glyphs=['\u265F','\u265E','\u265D','\u265C','\u265B','\u265A'];
-    const featCards = feats.map((f,i)=> h('div',{key:i,style:{display:'flex',gap:14,alignItems:'flex-start',textAlign:'left',
-      background:'linear-gradient(180deg,#1b1613,#141009)',border:'1px solid '+C.line,borderRadius:8,padding:'16px 18px',
+    const featCards = feats.map((f,i)=> h('div',{key:i,style:{display:'flex',gap:12,alignItems:'center',textAlign:'left',
+      background:'linear-gradient(180deg,#1b1613,#141009)',border:'1px solid '+C.line,borderRadius:8,padding:'14px 16px',
       animation:'pmRise .5s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.25+i*0.12)+'s',
-      width:port?'100%':246}},
-      h('div',{style:{width:38,height:38,flexShrink:0,borderRadius:8,background:'#0e0b09',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:f.col}}, this.icon(f.ic,20,f.col)),
-      h('div',null,
-        h('div',{style:{fontSize:14,fontWeight:700,color:C.text,marginBottom:4}}, f.title),
-        h('div',{style:{fontSize:12,color:C.mut,lineHeight:1.5}}, f.desc))));
+      width:port?'100%':220}},
+      h('div',{style:{width:34,height:34,flexShrink:0,borderRadius:8,background:'#0e0b09',border:'1px solid '+C.line2,display:'flex',alignItems:'center',justifyContent:'center',color:f.col}}, this.icon(f.ic,18,f.col)),
+      h('div',{style:{fontSize:13,fontWeight:700,color:C.text}}, f.title)));
 
     const cta = acc?
       h('div',{style:{display:'flex',flexDirection:'column',gap:10,alignItems:'center'}},
@@ -530,14 +528,14 @@ class Pathomino extends React.Component {
         h('div',{style:{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}},
           this.btn('Créer un compte · bient\u00f4t', null, {disabled:true,small:true}),
           this.btn('Se connecter · bient\u00f4t', null, {disabled:true,small:true})),
-        h('div',{style:{fontSize:11,color:C.mut,letterSpacing:'.04em'}}, 'Les comptes arrivent bient\u00f4t \u2014 joue en invité pour tester.'));
+        );
 
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'16px 12px':'28px 24px',maxWidth:port?340:840}},
       h('div',{style:{display:'flex',gap:port?10:16,justifyContent:'center',marginBottom:18,opacity:.5}},
         glyphs.map((g,i)=>h('span',{key:i,style:{fontSize:port?20:26,color:i%2?C.gold:C.mut,animation:'pmBob '+(2+i*0.3)+'s ease-in-out infinite'}},g))),
       h('div',{style:{fontSize:port?10:11,letterSpacing:port?'.3em':'.5em',color:C.gold,marginBottom:12}}, 'PUZZLE \u00B7 ROGUELIKE \u00B7 DONJON'),
       h('h1',{className:'pm-pixel',style:{fontSize:port?34:62,lineHeight:1.05,color:C.text,textShadow:'0 5px 0 #2a211a, 0 0 40px rgba(224,165,59,.3)',marginBottom:14,animation:'pmTitleIn .7s cubic-bezier(.2,.8,.2,1) backwards'}}, 'PATHOMINO'),
-      h('p',{style:{color:C.mut,fontSize:port?14:17,maxWidth:560,margin:'0 auto 6px',lineHeight:1.55}}, 'Un puzzle-roguelike de donjon. Tu traces ton chemin avec des pièces géométriques, tu combats avec des cartes, tu survis le plus longtemps possible.'),
+
       this.state.best>0 ? h('p',{style:{color:C.gold,fontSize:13,margin:'8px auto 0',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:14,justifyContent:'center',alignItems:port?'stretch':'flex-start',margin:port?'24px 0':'34px 0'}}, featCards),
       cta
