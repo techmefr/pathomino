@@ -330,10 +330,17 @@ class Pathomino extends React.Component {
     if(foodHits>0){ st.php=Math.min(this.state.pmax, this.state.php+foodHits*12); }
     if(Object.keys(m).some(k=>potionSet.has(k))) st.poisoned=false;
     if(g.treasure && m[g.treasure.join(',')]){
-      const bonus=this.rnd(10,18);
-      const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
-      st.gold=this.state.gold+bonus; st.deck=[...this.state.deck, card];
-      st.log=`Trésor ramassé ! +${bonus} or et une carte forte ajoutée au deck.`; this.sfx('coin');
+      if(this.rnd(0,1)===0){
+        const bonus=this.rnd(15,25);
+        const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
+        st.gold=this.state.gold+bonus; st.deck=[...this.state.deck, card];
+        st.log=`Trésor ! +${bonus} or et une carte forte.`; this.sfx('coin');
+      } else {
+        const f=this.state.floor; const hp=Math.round(60+f*10);
+        this._queue.push({kind:'pion',glyph:'\u2620',name:'Gardien du coffre',hp,max:hp,
+          atk:Math.round(12+f*2),vit:4,suit:this.SUITS[this.rnd(0,3)],gold:this.rnd(18,28)+f*2});
+        st.log='Un gardien surgit du coffre !'; this.sfx('bad');
+      }
     }
     this.setState(st);
     setTimeout(()=>this.advanceQueue(), 900);
