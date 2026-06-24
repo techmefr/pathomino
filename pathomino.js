@@ -75,7 +75,7 @@ class Pathomino extends React.Component {
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
     voleurUnlocked:false, mageUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
-    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0
+    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false
   };
 
   loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
@@ -201,7 +201,7 @@ class Pathomino extends React.Component {
     const hand = Array.from({length:ch.pieces}, ()=>this.drawPiece());
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
-      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], shop:null, hand,
+      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], shop:null, hand, poisoned:false,
       showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(e){ return true; } })()
     }, ()=> this.genFloor(true));
   }
@@ -228,12 +228,27 @@ class Pathomino extends React.Component {
     let treasure=null, tg=0;
     do{ treasure=[this.rnd(1,n-2),this.rnd(1,n-2)]; }while(taken.has(treasure.join(','))&&tg++<60);
     if(taken.has(treasure.join(','))) treasure=null;
+    if(treasure) taken.add(treasure.join(','));
+    const holeCount=f<2?0:Math.min(2+Math.floor(f/3),4);
+    const holes=[]; let hg=0;
+    while(holes.length<holeCount && hg++<200){
+      const p=[this.rnd(0,n-1),this.rnd(0,n-1)];
+      if(taken.has(p.join(','))) continue;
+      taken.add(p.join(',')); holes.push(p);
+    }
+    const trapCount=f<3?0:Math.min(1+Math.floor(f/4),3);
+    const traps=[]; let tg2=0;
+    while(traps.length<trapCount && tg2++<200){
+      const p=[this.rnd(0,n-1),this.rnd(0,n-1)];
+      if(taken.has(p.join(','))) continue;
+      taken.add(p.join(',')); traps.push(p);
+    }
     let hand = [...(this.state.hand||[])];
     if(!firstFloor){
       for(let i=0;i<this.FLOOR_REFILL && hand.length<this.HAND_MAX;i++) hand.push(this.drawPiece());
     }
     this.setState({
-      grid:{n,start,key,door,pawns,boss,treasure}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR
+      grid:{n,start,key,door,pawns,boss,treasure,holes,traps}, hand, placed:[], selPiece:null, rot:0, ghost:null, executing:false, drawsLeft:this.DRAWS_PER_FLOOR
     });
   }
   drawPiece(){
@@ -253,7 +268,8 @@ class Pathomino extends React.Component {
   }
   ghostValid(cells){
     const n=this.state.grid.n; const m=this.placedMap();
-    return cells.every(([r,c])=> r>=0&&c>=0&&r<n&&c<n && !m[r+','+c]);
+    const hset=new Set((this.state.grid.holes||[]).map(p=>p.join(',')));
+    return cells.every(([r,c])=> r>=0&&c>=0&&r<n&&c<n && !m[r+','+c] && !hset.has(r+','+c));
   }
   hoverCell(r,c){ if(this.state.selPiece!==null) this.setState({ghost:[r,c]}); }
   placePiece(){
@@ -292,6 +308,8 @@ class Pathomino extends React.Component {
     if(g.boss) this._queue.push(this.makeBoss());
     this._qi=-1;
     const st={executing:true};
+    const trapSet=new Set((g.traps||[]).map(t=>t.join(',')));
+    if(Object.keys(m).some(k=>trapSet.has(k))) st.poisoned=true;
     if(g.treasure && m[g.treasure.join(',')]){
       const bonus=this.rnd(10,18);
       const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
@@ -423,9 +441,10 @@ class Pathomino extends React.Component {
       this.setState({busy:false, enemyTurns:turns, log:`${ch.name} esquive l'attaque !`}); return; }
     const esc = Math.max(0, turns-1) * Math.max(2, Math.round(e.atk*0.15));
     const raw = Math.max(1, (e.atk + esc - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
-    const php=Math.max(0, this.state.php - raw);
-    this.sfx('hurt'); this.addFloat('hero','-'+raw, this.C.red); this.shakeEl('hero');
-    this.setState({php, busy:false, enemyTurns:turns, log:`${e.name} riposte — ${raw} dégâts${esc>0?' (enragé +'+esc+')':''}`});
+    const poisonDmg=this.state.poisoned?3:0;
+    const php=Math.max(0, this.state.php - raw - poisonDmg);
+    this.sfx('hurt'); this.addFloat('hero','-'+(raw+poisonDmg), this.C.red); this.shakeEl('hero');
+    this.setState({php, busy:false, enemyTurns:turns, log:`${e.name} riposte — ${raw} dégâts${esc>0?' (enragé +'+esc+')':''}${poisonDmg>0?' + 3 poison':''}`});
     if(php<=0){ setTimeout(()=>this.death(), 800); }
   }
   winCombat(){
@@ -665,10 +684,16 @@ class Pathomino extends React.Component {
       let bg='#13100e', bd=C.line, bstyle='solid';
       if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=C.gold; }
         else { bg='#241f1a'; bd=C.line2; bstyle='dashed'; } }
+      if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
       if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?C.gold2:C.red; bstyle='solid'; }
+      if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
       const isTreasure = g.treasure && this.eq(g.treasure,[r,c]);
+      const isHole=(g.holes||[]).some(p=>this.eq(p,[r,c]));
+      const isTrap=(g.traps||[]).some(p=>this.eq(p,[r,c]));
       let content=null;
-      if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: m[k]?C.red:C.mut}}, '\u265F',
+      if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
+      else if(isTrap && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#5a9a5a',filter:'drop-shadow(0 0 3px rgba(80,180,80,.5))'}}, '\u2620');
+      else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: m[k]?C.red:C.mut}}, '\u265F',
         (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, C.gold2)) : null);
       else if(isStart) content=this.icon('flag',cell*.5, placed?C.gold2:C.text);
       else if(isKey) content=this.icon('key',cell*.52, C.gold2);
