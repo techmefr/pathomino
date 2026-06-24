@@ -1,10 +1,4 @@
-// Pathomino — puzzle-roguelike de donjon.
-// Logique de jeu portee telle quelle depuis le prototype, debarrassee du
-// runtime DSL : un composant React.Component classique, monte dans index.html.
-
 class Pathomino extends React.Component {
-  // Mirrors the original <x-dc> template: renderVals() returns the active
-  // screen element (others are null) plus the floating drag overlay.
   render(){
     const h = React.createElement;
     const v = this.renderVals();
@@ -12,7 +6,6 @@ class Pathomino extends React.Component {
       v.homeEl, v.authEl, v.selectEl, v.planEl,
       v.combatEl, v.shopEl, v.resultEl, v.dragOverlay);
   }
-
 
   C = {ink:'#0e0c0b',p1:'#1b1715',p2:'#241f1b',p3:'#2f2823',line:'#3a342e',line2:'#4c443b',text:'#ece4d6',mut:'#8d8377',gold:'#e0a53b',gold2:'#f3c976',red:'#cf5040',green:'#86b46a',blue:'#6f9bca'};
   CARD = {bg:'#f3ecdd',line:'#d6cab2',red:'#b5402f',ink:'#26201b'};
@@ -69,7 +62,6 @@ class Pathomino extends React.Component {
     voleurUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0
   };
 
-  // ---------- account (local) ----------
   loadAccount(){ try{ const a=localStorage.getItem('pm_account'); return a?JSON.parse(a):null; }catch(e){ return null; } }
   saveAccount(a){ try{ localStorage.setItem('pm_account', JSON.stringify(a)); }catch(e){} }
   submitAuth(){
@@ -139,7 +131,6 @@ class Pathomino extends React.Component {
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ cs.push(h('div',{key:r+','+c,style:{width:u,height:u,background:sset.has(r+','+c)?color:'transparent',borderRadius:2}})); }
     return h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u}px)`,gap:2}}, cs); }
 
-  // ---------- piece geometry ----------
   rotated(key, times){
     let cells = this.SHAPES[key].map(c=>[c[0],c[1]]);
     for(let t=0;t<(times%4+4)%4;t++){ cells = cells.map(([r,c])=>[c,-r]); }
@@ -147,7 +138,6 @@ class Pathomino extends React.Component {
     return cells.map(([r,c])=>[r-minr,c-minc]);
   }
 
-  // ---------- run / floor setup ----------
   startRun(charKey){
     const ch = this.CHARS[charKey];
     const deck = this.buildDeck();
@@ -162,10 +152,8 @@ class Pathomino extends React.Component {
     const n = this.state.gridN;
     const boss = this.isBossFloor(this.state.floor);
     const start=[n-1,0], door=[0,n-1];
-    // key interior
     let key;
     do{ key=[this.rnd(1,n-2), this.rnd(1,n-2)]; }while(this.eq(key,start)||this.eq(key,door));
-    // pawns
     const taken = new Set([start.join(','),door.join(','),key.join(',')]);
     const pawns=[]; const pc = Math.min(2+Math.floor(this.state.floor/2), 5);
     let guard=0;
@@ -182,7 +170,6 @@ class Pathomino extends React.Component {
   drawPiece(){ const ks=Object.keys(this.SHAPES); return {uid:Math.random().toString(36).slice(2), key:ks[this.rnd(0,ks.length-1)]}; }
   eq(a,b){ return a[0]===b[0]&&a[1]===b[1]; }
 
-  // ---------- placement ----------
   placedMap(){ const m={}; this.state.placed.forEach(pl=>pl.cells.forEach(c=>{m[c.join(',')]=true;})); return m; }
   ghostCells(){
     if(this.state.selPiece===null || !this.state.ghost) return null;
@@ -212,7 +199,6 @@ class Pathomino extends React.Component {
     const m=this.placedMap();
     const inSet=(p)=>m[p.join(',')];
     if(!inSet(g.start)||!inSet(g.key)||!inSet(g.door)) return {ok:false, reason:'Couvre départ, clé et porte'};
-    // connectivity from start
     const n=g.n, seen=new Set([g.start.join(',')]); const q=[g.start];
     while(q.length){ const[r,c]=q.shift();
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=r+dr,nc=c+dc,k=nr+','+nc;
@@ -253,7 +239,6 @@ class Pathomino extends React.Component {
     this.setState({screen:'combat', enemy:{...enemy}, csel:[], spadeRed:0, log:`Un ${enemy.name} bloque le passage !`, combatPhase:'player', busy:false, floats:[], defeating:false, hitFlash:0, combatSeq:(this.state.combatSeq||0)+1});
   }
 
-  // ---------- deck ----------
   buildDeck(){ const d=[]; for(const s of this.SUITS){ for(let r=2;r<=14;r++){ d.push({uid:Math.random().toString(36).slice(2), rank:r, suit:s}); } }
     return this.shuffle(d); }
   shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -263,7 +248,6 @@ class Pathomino extends React.Component {
   rankLabel(r){ return r<=10? String(r) : ({11:'J',12:'Q',13:'K',14:'A'}[r]); }
   cardVal(c){ return c.joker?0:c.rank; }
 
-  // ---------- combo ----------
   detect(sel){
     if(!sel.length) return null;
     const jok = sel.filter(c=>c.joker), reg = sel.filter(c=>!c.joker);
@@ -278,7 +262,7 @@ class Pathomino extends React.Component {
     let isStraight=false;
     if(n>=5 && uniq.length===5){
       if(uniq[4]-uniq[0]===4) isStraight=true;
-      if(uniq.join(',')==='2,3,4,5,14') isStraight=true; // suite basse (As)
+      if(uniq.join(',')==='2,3,4,5,14') isStraight=true;
     }
     let type,name,mult;
     if(isStraight&&isFlush){ type='quinteflush'; name='Quinte Flush'; mult=7; }
@@ -324,7 +308,6 @@ class Pathomino extends React.Component {
     const sel = this.state.csel.map(uid=>this.state.chand.find(c=>c.uid===uid)).filter(Boolean);
     const combo = this.detect(sel); if(!combo||!combo.valid) return;
     this.setState({busy:true});
-    // remove played -> discard
     let chand = this.state.chand.filter(c=>!this.state.csel.includes(c.uid));
     let discard=[...this.state.discard, ...sel];
     let enemy={...this.state.enemy}; let php=this.state.php; let spadeRed=this.state.spadeRed;
@@ -334,7 +317,6 @@ class Pathomino extends React.Component {
     let deck=this.state.deck;
     this.addFloat('enemy', '-'+combo.dmg, this.C.gold2);
     if(combo.heal) this.addFloat('hero','+'+combo.heal, this.C.green);
-    // draw
     let target=8+(combo.draw||0);
     const rf=this.refill(deck, discard, chand, Math.min(11,target)); deck=rf.deck; discard=rf.discard; chand=rf.hand;
     this.setState({chand, deck, discard, enemy, php, spadeRed, csel:[], hitFlash:(this.state.hitFlash||0)+1, log:`${combo.name} — ${combo.dmg} dégâts${combo.effect? ' · '+combo.effect:''}`});
@@ -387,7 +369,6 @@ class Pathomino extends React.Component {
     const shop=this.genShop();
     this.setState({...st, screen:'shop', floor:this.state.floor+1, shop});
   }
-  // ---------- shop ----------
   genShop(){
     const owned=this.state.jokers||[];
     const jkKeys=Object.keys(this.JOKERS).filter(k=>!owned.includes(k));
@@ -409,13 +390,11 @@ class Pathomino extends React.Component {
   rerollShop(){ if(this.state.gold<5) return; this.setState({gold:this.state.gold-5, shop:this.genShop()}); }
   leaveShop(){ this.setState({screen:'plan'}, ()=>this.genFloor()); }
 
-  // ---------- fx ----------
   addFloat(target,text,color){ const id=Math.random().toString(36).slice(2);
     this.setState(s=>({floats:[...s.floats,{id,target,text,color}]}));
     setTimeout(()=>this.setState(s=>({floats:s.floats.filter(f=>f.id!==id)})),1100); }
   shakeEl(t){ this._shake=t; this.setState(s=>({_sk:Math.random()})); setTimeout(()=>{this._shake=null;this.setState(s=>({_sk:Math.random()}));},450); }
 
-  // ================= RENDER =================
   icon(name,size,color){ const C=this.C; return React.createElement('span',{style:{display:'inline-flex',width:size,height:size,color:color||C.text},dangerouslySetInnerHTML:{__html:this.SVG[name]}}); }
 
   btn(label,onClick,opt={}){ const C=this.C; const {primary,danger,disabled,small,wide}=opt;
@@ -431,7 +410,6 @@ class Pathomino extends React.Component {
        onMouseUp:e=>e.currentTarget.style.transform='none',
        onMouseLeave:e=>e.currentTarget.style.transform='none'}, label); }
 
-  // ----- HOME -----
   renderHome(port){
     const C=this.C,h=React.createElement; const acc=this.state.account;
     const feats=[
@@ -475,7 +453,6 @@ class Pathomino extends React.Component {
     );
   }
 
-  // ----- AUTH -----
   authInput(value,onCh,ph,type){ const C=this.C,h=React.createElement;
     return h('input',{type:type||'text', value:value||'', placeholder:ph,
       onChange:(e)=>onCh(e.target.value),
@@ -509,7 +486,6 @@ class Pathomino extends React.Component {
     );
   }
 
-  // ----- SELECT -----
   renderSelect(port){
     const C=this.C, h=React.createElement;
     const cards = ['chevalier','mage','voleur'].map((k,ci)=>{
@@ -547,7 +523,6 @@ class Pathomino extends React.Component {
     );
   }
 
-  // ----- PLAN -----
   renderPlan(port){
     const C=this.C,h=React.createElement; const g=this.state.grid; if(!g) return h('div',null);
     const m=this.placedMap(); const gc=this.ghostCells(); const gValid = gc&&this.ghostValid(gc);
@@ -584,7 +559,6 @@ class Pathomino extends React.Component {
       style:{display:'grid',gridTemplateColumns:`repeat(${g.n},${cell}px)`,gap:2,padding:14,touchAction:'none',
         background:'#0c0a09',border:'1px solid '+C.line,borderRadius:8,boxShadow:'inset 0 0 40px rgba(0,0,0,.6)'}}, cells);
 
-    // tray — grouped by shape with a count badge
     const groups={}; this.state.hand.forEach((p,i)=>{ (groups[p.key]=groups[p.key]||{key:p.key,idx:[]}).idx.push(i); });
     const selKey = this.state.selPiece!==null && this.state.hand[this.state.selPiece] ? this.state.hand[this.state.selPiece].key : null;
     const tray = Object.values(groups).map(gr=>{
@@ -611,7 +585,6 @@ class Pathomino extends React.Component {
     const legend=[['flag','Départ'],['key','Clé'],[boss?'boss':'door',boss?bdef.name:'Porte'],['pawn','Pion (combat)']];
 
     return h('div',{style:{animation:'pmFade .4s ease',width:'100%',maxWidth:port?504:1060,padding:port?'10px 8px':'18px 26px'}},
-      // topbar
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:port?12:18}},
         h('div',{style:{display:'flex',alignItems:'center',gap:14}},
           h('span',{className:'pm-pixel',style:{fontSize:15,color:C.gold}}, 'PATHOMINO'),
@@ -621,13 +594,11 @@ class Pathomino extends React.Component {
           this.statChip('heart', this.state.php+'/'+this.state.pmax, C.red),
           this.statChip('coin', this.state.gold, C.gold),
           h('span',{style:{fontSize:12,color:C.mut}}, this.state.bossesBeaten+' boss vaincus'))),
-      // body
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?16:26,alignItems:port?'center':'flex-start'}},
         h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, grid,
           h('div',{style:{display:'flex',gap:18,marginTop:14,flexWrap:'wrap'}}, legend.map(([ic,lab])=>
             h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:7,fontSize:12,color:C.mut}},
               ic==='pawn'?h('span',{style:{color:C.mut,fontSize:16}},'\u265F'): ic==='boss'?h('span',{style:{color:C.red,fontSize:16}},bdef.glyph): this.icon(ic,16, ic==='key'?C.gold2:C.text), lab)))),
-        // panel
         h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:C.p1,border:'1px solid '+C.line,borderRadius:8,padding:port?16:20}},
           h('div',{style:{fontSize:11,letterSpacing:'.16em',color:C.gold,marginBottom:6}}, 'PHASE DE PLANIFICATION'),
           h('p',{style:{fontSize:13,color:C.mut,lineHeight:1.5,marginBottom:16}}, 'Place des tétrominos pour relier le départ à la clé puis à la porte. Passe sur les pions pour les combattre, ou contourne-les.'),
@@ -650,7 +621,6 @@ class Pathomino extends React.Component {
     return h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:13,fontWeight:600,color:C.text}},
       this.icon(ic,16,col), val); }
 
-  // ----- COMBAT -----
   renderCombat(port){
     const C=this.C,h=React.createElement; const e=this.state.enemy; if(!e) return h('div',null);
     const ch=this.CHARS[this.state.char];
@@ -661,7 +631,6 @@ class Pathomino extends React.Component {
       h('div',{key:f.id,style:{position:'absolute',left:'50%',top:'30%',transform:'translateX(-50%)',
         fontFamily:'Press Start 2P',fontSize:18,color:f.color,animation:'pmFloatUp 1.1s ease forwards',pointerEvents:'none',whiteSpace:'nowrap',textShadow:'0 2px 0 #000'}}, f.text));
 
-    // enemy sprite
     const isBoss=e.kind==='boss';
     const enemyBox = (w)=> h('div',{style:{width:w}},
       h('div',{style:{background:'#0e0b09',border:'2px solid '+C.line2,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
@@ -687,12 +656,10 @@ class Pathomino extends React.Component {
           h('div',{key:'flash'+(this.state.hitFlash||0),style:{position:'absolute',inset:'-8px',borderRadius:'50%',background:'radial-gradient(circle,#fff,rgba(255,255,255,0) 68%)',mixBlendMode:'screen',opacity:0,animation:(this.state.hitFlash>0?'pmFlash .42s ease':'none'),pointerEvents:'none'}})),
         h('div',{style:{width:isBoss?150:120,height:18,margin:'2px auto 0',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
 
-    // hero (back view) - stylized
     const heroSprite=h('div',{key:'hsp'+(this.state.combatSeq||0),style:{animation:'pmHeroIn .5s cubic-bezier(.2,.9,.25,1) backwards',animationDelay:'.12s'}},
       h('div',{style:{position:'relative',textAlign:'center',animation:this._shake==='hero'?'pmShake .45s':'none'}},
       floats('hero'),
       h('div',{style:{position:'relative',width:120,height:120}},
-        // simple back-view: cloak shape + head
         h('div',{style:{position:'absolute',left:'50%',bottom:0,transform:'translateX(-50%)',width:86,height:92,
           background:'linear-gradient(180deg,'+ch.color+',#2a211a)',borderRadius:'46% 46% 30% 30%/60% 60% 40% 40%',border:'2px solid #1a1410'}}),
         h('div',{style:{position:'absolute',left:'50%',top:6,transform:'translateX(-50%)',width:44,height:44,borderRadius:'50%',
@@ -709,7 +676,6 @@ class Pathomino extends React.Component {
           h('div',{style:{height:'100%',width:phpPct+'%',background:phpPct>30?'linear-gradient(90deg,#e9b24b,#c98a2f)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
         h('div',{style:{textAlign:'right',fontSize:11,color:C.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV')));
 
-    // card fan
     const hand=this.state.chand; const nC=hand.length;
     const fan=hand.map((card,i)=>{
       const seld=this.state.csel.includes(card.uid); const hov=this.state.hoverCard===card.uid;
@@ -789,7 +755,6 @@ class Pathomino extends React.Component {
       h('div',{style:{position:'absolute',bottom:4,right:6,fontSize:14,fontWeight:700,color:col,lineHeight:1,textAlign:'center',transform:'rotate(180deg)'}}, lab, h('div',{style:{fontSize:11}},card.suit)));
   }
 
-  // ----- SHOP -----
   renderShop(port){
     const C=this.C,h=React.createElement;
     const shop=this.state.shop||{jokers:[],pieces:[],cards:[]};
@@ -847,7 +812,6 @@ class Pathomino extends React.Component {
           section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers))));
   }
 
-  // ----- RESULT -----
   renderResult(){
     const C=this.C,h=React.createElement;
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',width:520,padding:'40px 36px',background:'linear-gradient(180deg,#211712,#140d0b)',border:'1px solid '+C.line,borderRadius:12}},
