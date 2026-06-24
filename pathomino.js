@@ -136,15 +136,15 @@ class Pathomino extends React.Component {
     this._resize();
     this._key = (e)=>{
       if(this.state.screen!=='plan' || this.state.executing) return;
-      if(evt.key==='r'||evt.key==='R'){ this.setState(s=>({rot:(s.rot+1)%4})); }
-      if(evt.key==='Escape'){ this.setState({selPiece:null,ghost:null,dragging:false}); }
+      if(e.key==='r'||e.key==='R'){ this.setState(s=>({rot:(s.rot+1)%4})); }
+      if(e.key==='Escape'){ this.setState({selPiece:null,ghost:null,dragging:false}); }
     };
-    this._move = (e)=>{ if(this.state.dragging) this.setState({dragXY:{x:evt.clientX,y:evt.clientY}}); };
+    this._move = (e)=>{ if(this.state.dragging) this.setState({dragXY:{x:e.clientX,y:e.clientY}}); };
     this._up = (e)=>{ if(!this.state.dragging) return; const cells=this.ghostCells();
       if(cells&&this.ghostValid(cells)){ this.placePiece(); } else { this.setState({dragging:false}); } };
     this._cellAt = (x,y)=>{ const el=document.elementFromPoint(x,y); const ce=el&&el.closest?el.closest('[data-rc]'):null;
       if(ce&&ce.dataset.rc){ const a=ce.dataset.rc.split(',').map(Number); return [a[0],a[1]]; } return null; };
-    this._tmove = (e)=>{ if(!this.state.dragging) return; const t=evt.touches&&evt.touches[0]; if(!t) return; evt.preventDefault();
+    this._tmove = (e)=>{ if(!this.state.dragging) return; const t=e.touches&&e.touches[0]; if(!t) return; e.preventDefault();
       const rc=this._cellAt(t.clientX,t.clientY); this.setState(rc?{dragXY:{x:t.clientX,y:t.clientY},ghost:rc}:{dragXY:{x:t.clientX,y:t.clientY}}); };
     this._tend = (e)=>{ if(!this.state.dragging) return; const cells=this.ghostCells();
       if(cells&&this.ghostValid(cells)){ this.placePiece(); } else { this.setState({dragging:false}); } };
@@ -170,8 +170,8 @@ class Pathomino extends React.Component {
     sp.rows.forEach((row,r)=>{ for(let c=0;c<row.length;c++){ const col=sp.pal[row[c]];
       if(col) cells.push(h('div',{key:r+'_'+c,style:{position:'absolute',left:c*px,top:r*px,width:px,height:px,background:col}})); } });
     return h('div',{style:{position:'relative',width:w*px,height:hgt*px,imageRendering:'pixelated',filter:'drop-shadow(0 4px 0 rgba(0,0,0,.4))'}}, cells); }
-  startDrag(i,e){ if(e&&e.preventDefault)evt.preventDefault();
-    const pt = e&&evt.touches&&evt.touches[0] ? evt.touches[0] : e;
+  startDrag(i,e){ if(e&&e.preventDefault)e.preventDefault();
+    const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
     const x = pt&&pt.clientX!=null?pt.clientX:0, y = pt&&pt.clientY!=null?pt.clientY:0;
     this.setState(s=>({selPiece:i, dragging:true, ghost:null, rot:(s.selPiece===i?s.rot:0), dragXY:{x,y}})); }
   clampAnchor(r,c,shape){ const n=this.state.grid.n;
@@ -179,11 +179,11 @@ class Pathomino extends React.Component {
     return [Math.max(0,Math.min(r,n-1-maxR)), Math.max(0,Math.min(c,n-1-maxC))]; }
   placeAt(r,c){ if(this.state.selPiece===null||this.state.dragging) return;
     const piece=this.state.hand[this.state.selPiece]; if(!piece) return;
-    const shape=this.rotated(piecevt.key, this.state.rot);
+    const shape=this.rotated(piece.key, this.state.rot);
     const [ar,ac]=this.clampAnchor(r,c,shape);
     const cells=shape.map(([dr,dc])=>[ar+dr,ac+dc]);
     if(!this.ghostValid(cells)){ this.sfx('bad'); this.setState({ghost:[ar,ac]}); return; }
-    const placed=[...this.state.placed, {uid:piece.uid, key:piecevt.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells); }
@@ -285,7 +285,7 @@ class Pathomino extends React.Component {
   ghostCells(){
     if(this.state.selPiece===null || !this.state.ghost) return null;
     const piece = this.state.hand[this.state.selPiece]; if(!piece) return null;
-    const shape = this.rotated(piecevt.key, this.state.rot);
+    const shape = this.rotated(piece.key, this.state.rot);
     const [ar,ac]=this.clampAnchor(this.state.ghost[0], this.state.ghost[1], shape);
     return shape.map(([r,c])=>[ar+r, ac+c]);
   }
@@ -298,7 +298,7 @@ class Pathomino extends React.Component {
   placePiece(){
     const cells=this.ghostCells(); if(!cells||!this.ghostValid(cells)) return;
     const piece=this.state.hand[this.state.selPiece];
-    const placed=[...this.state.placed, {uid:piece.uid, key:piecevt.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
     this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells);
@@ -843,7 +843,7 @@ class Pathomino extends React.Component {
       const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
         background:sset.has(r+','+c)?(sel?clr.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key, onMouseDown:(evt)=>this.startDrag(i0,e), onTouchStart:(evt)=>this.startDrag(i0,e), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
+      return h('div',{key:gr.key, onMouseDown:(evt)=>this.startDrag(i0,evt), onTouchStart:(evt)=>this.startDrag(i0,evt), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
         title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
         style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
           background:sel?'rgba(224,165,59,.14)':clr.p1,border:'1px solid '+(sel?clr.gold:clr.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
@@ -1179,7 +1179,7 @@ class Pathomino extends React.Component {
     const scale=port? this.fitScale(528,1040) : this.fitScale(1092,690);
     const u=Math.max(8, Math.round(cell*scale)-2);
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
-      this.miniPiece(piecevt.key, s.rot, u, this.C.gold2));
+      this.miniPiece(piece.key, s.rot, u, this.C.gold2));
   }
   miniCells(cells,u,color,gap){ const h=React.createElement;
     const set=new Set(cells.map(c=>c.join(','))); const rows=Math.max(...cells.map(c=>c[0]))+1, cols=Math.max(...cells.map(c=>c[1]))+1; const out=[];
