@@ -884,7 +884,7 @@ class Pathomino extends React.Component {
 
           h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:10}}, 'TA MAIN'),
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
+          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:C.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
             this.state.char==='mage'?this.btn(
@@ -892,10 +892,18 @@ class Pathomino extends React.Component {
               ()=>{ if(!this.state.portalUsed||this.state.selectingPortal) this.setState(s=>({selectingPortal:!s.selectingPortal,portalA:null})); },
               {small:true,disabled:this.state.portalUsed&&!this.state.selectingPortal}):null),
           h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
+          this.state.poisoned ? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:8,padding:'6px 10px',background:'rgba(86,154,90,.1)',border:'1px solid '+C.green,borderRadius:5,fontSize:12,color:C.green}},
+            h('span',null,'☠'),
+            h('span',null,'Empoisonné — +3 dmg/tour en combat')) : null,
           h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
           hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12}}, 'Pièces non reliées') : null,
           this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
-          this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true})
+          this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true}),
+          this.state.weapon ? h('div',{style:{display:'flex',alignItems:'center',gap:8,marginTop:10,padding:'6px 10px',background:'rgba(224,165,59,.08)',border:'1px solid #4a3a1a',borderRadius:5,fontSize:11}},
+            h('span',{style:{fontSize:16,color:this.C.gold}}, this.WEAPONS[this.state.weapon].glyph),
+            h('div',null,
+              h('div',{style:{color:this.C.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
+              h('div',{style:{color:this.C.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
         )
       )
     );
