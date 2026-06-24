@@ -47,10 +47,10 @@ class Pathomino extends React.Component {
   SUITS = ['♥','♦','♣','♠'];
   JOKERS = {
     lame:{name:'Lame Affûtée',glyph:'⚔',color:'#c98a3a',price:6,desc:'+30% de dégâts sur toutes les mains',mod:(m,t)=>{m.dmgMult*=1.3;}},
-    trefle:{name:'Trèfle Vorace',glyph:'♣',color:'#86b46a',price:7,desc:'♣ triple les dégâts (au lieu de ×2)',mod:(m,t)=>{m.clubX=3;}},
-    coeur:{name:'Cœur Sacré',glyph:'♥',color:'#cf5040',price:6,desc:'♥ soigne deux fois plus',mod:(m,t)=>{m.healFactor=1.0;}},
-    carreau:{name:'Diamant Fou',glyph:'♦',color:'#6f9bca',price:5,desc:'♦ pioche 2 cartes de plus',mod:(m,t)=>{m.drawBonus+=2;}},
-    pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ réduit l\'attaque de 3 de plus',mod:(m,t)=>{m.spadeBonus+=3;}},
+    trefle:{name:'Trèfle Vorace',glyph:'♣',color:'#86b46a',price:7,desc:'♣ active double des dégâts',mod:(m,t)=>{m.clubEnabled=true;}},
+    coeur:{name:'Cœur Sacré',glyph:'♥',color:'#cf5040',price:6,desc:'♥ active soin (50% des dégâts)',mod:(m,t)=>{m.healEnabled=true;}},
+    carreau:{name:'Diamant Fou',glyph:'♦',color:'#6f9bca',price:5,desc:'♦ active pioche de 2 cartes',mod:(m,t)=>{m.drawEnabled=true;}},
+    pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ active réduction -3 att ennemie',mod:(m,t)=>{m.spadeEnabled=true;}},
     royal:{name:'Sang Royal',glyph:'♛',color:'#e0a53b',price:8,desc:'Suite, couleur, full+ : +60% dégâts',mod:(m,t)=>{ if(['suite','couleur','full','carre','quinteflush'].includes(t)) m.dmgMult*=1.6; }}
   };
   SVG = {
@@ -420,16 +420,16 @@ class Pathomino extends React.Component {
     const ch=this.CHARS[this.state.char];
     const stat = this.state.char==='mage'? ch.magie : this.state.char==='voleur'? (ch.force+ch.magie)/2 : ch.force;
     dmg = Math.round(dmg*(1+stat/55));
-    const mods={dmgMult:1, clubX:2, healFactor:0.5, drawBonus:0, spadeBonus:0};
+    const mods={dmgMult:1, clubEnabled:false, clubX:2, healEnabled:false, healFactor:0.5, drawEnabled:false, drawBonus:0, spadeEnabled:false, spadeBonus:0};
     (this.state.jokers||[]).forEach(k=>{ const j=this.JOKERS[k]; if(j&&j.mod) j.mod(mods,type); });
     dmg = Math.round(dmg*mods.dmgMult);
     const immune=(this.state.enemy&&this.state.enemy.suit)||null;
     const suits=new Set(sel.filter(c=>!c.joker).map(c=>c.suit));
     const H='\u2665',D='\u2666',Cl='\u2663',S='\u2660'; const fx=[];
-    if(suits.has(Cl)){ if(immune===Cl){ fx.push('\u2663 annulé'); } else { doubled=true; dmg=Math.round(dmg*mods.clubX); fx.push('\u2663 ×'+mods.clubX); } }
-    if(suits.has(H)){ if(immune===H){ fx.push('\u2665 annulé'); } else { heal=Math.round(dmg*mods.healFactor); fx.push('\u2665 +'+heal); } }
-    if(suits.has(D)){ if(immune===D){ fx.push('\u2666 annulé'); } else { draw=2+mods.drawBonus; fx.push('\u2666 pioche +'+draw); } }
-    if(suits.has(S)){ if(immune===S){ fx.push('\u2660 annulé'); } else { spade=3+mods.spadeBonus; fx.push('\u2660 att. -'+spade); } }
+    if(suits.has(Cl) && mods.clubEnabled){ if(immune===Cl){ fx.push('\u2663 annulé'); } else { doubled=true; dmg=Math.round(dmg*mods.clubX); fx.push('\u2663 \xd72'); } }
+    if(suits.has(H) && mods.healEnabled){ if(immune===H){ fx.push('\u2665 annulé'); } else { heal=Math.round(dmg*mods.healFactor); fx.push('\u2665 +'+heal); } }
+    if(suits.has(D) && mods.drawEnabled){ if(immune===D){ fx.push('\u2666 annulé'); } else { draw=2+mods.drawBonus; fx.push('\u2666 pioche +'+draw); } }
+    if(suits.has(S) && mods.spadeEnabled){ if(immune===S){ fx.push('\u2660 annulé'); } else { spade=3+mods.spadeBonus; fx.push('\u2660 att. -'+spade); } }
     const effect=fx.join(' · ');
     return {type,name,dmg,effect,heal,draw,spade,doubled,valid:true,sel};
   }
