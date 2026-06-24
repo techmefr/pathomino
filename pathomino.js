@@ -457,9 +457,11 @@ class Pathomino extends React.Component {
           this.btn('Se déconnecter', ()=>this.logout(), {small:true})))
       :
       h('div',{style:{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}},
-        this.btn('Créer un compte \u2192', ()=>this.setState({screen:'auth',authMode:'create',authErr:''}), {primary:true}),
-        this.btn('Se connecter', ()=>this.setState({screen:'auth',authMode:'login',authErr:''})),
-        this.btn('Jouer en invité', ()=>this.playAsGuest(), {small:true}));
+        this.btn('Jouer en invité \u2192', ()=>this.playAsGuest(), {primary:true}),
+        h('div',{style:{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}},
+          this.btn('Créer un compte · bient\u00f4t', null, {disabled:true,small:true}),
+          this.btn('Se connecter · bient\u00f4t', null, {disabled:true,small:true})),
+        h('div',{style:{fontSize:11,color:C.mut,letterSpacing:'.04em'}}, 'Les comptes arrivent bient\u00f4t \u2014 joue en invité pour tester.'));
 
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'16px 12px':'28px 24px',maxWidth:port?340:840}},
       h('div',{style:{display:'flex',gap:port?10:16,justifyContent:'center',marginBottom:18,opacity:.5}},

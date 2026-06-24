@@ -44,14 +44,21 @@ button{touch-action:manipulation}
 
   <noscript>Ce jeu necessite JavaScript.</noscript>
 
-  <!-- React 18 (UMD) : expose window.React / window.ReactDOM -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- React 18 (UMD) embarque localement : aucune dependance reseau, marche hors-ligne -->
+  <script src="./vendor/react.production.min.js"></script>
+  <script src="./vendor/react-dom.production.min.js"></script>
 
   <script src="./pathomino.js"></script>
   <script>
-    ReactDOM.createRoot(document.getElementById('app'))
-      .render(React.createElement(Pathomino));
+    (function () {
+      var app = document.getElementById('app');
+      if (!window.React || !window.ReactDOM || typeof Pathomino === 'undefined') {
+        app.textContent = 'Erreur de chargement du jeu. Recharge la page.';
+        app.style.cssText = 'color:#ece4d6;font:16px/1.5 system-ui,sans-serif;padding:24px;text-align:center';
+        return;
+      }
+      ReactDOM.createRoot(app).render(React.createElement(Pathomino));
+    })();
   </script>
 </body>
 </html>
