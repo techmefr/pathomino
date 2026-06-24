@@ -611,7 +611,7 @@ class Pathomino extends React.Component {
     const ob={position:'absolute',background:'transparent',border:'none',cursor:'pointer',opacity:0,padding:0};
     return h('div',{style:{position:'fixed',inset:0,background:'#0e0c0b',display:'flex',alignItems:'center',justifyContent:'center'}},
       h('div',{style:{position:'relative',display:'inline-flex',maxHeight:'100dvh',maxWidth:'100vw'}},
-        h('img',{src:'./Gemini_Generated_Image_bhuro7bhuro7bhur.png',draggable:false,
+        h('img',{src:'./hero.webp',draggable:false,
           style:{display:'block',maxHeight:'100dvh',maxWidth:'100vw',width:'auto',height:'auto'}}),
         h('button',{onClick:goSelect,'aria-label':'Commencer',
           style:{...ob,top:'88%',bottom:'1%',left:'2%',right:'52%'}}),
