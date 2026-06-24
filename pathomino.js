@@ -2,7 +2,7 @@ class Pathomino extends React.Component {
   render(){
     const h = React.createElement;
     const v = this.renderVals();
-    return h('div', {id:'pm-root'},
+    return h('div', {id:'pm-root', style: v.hudEl ? {paddingTop:34} : {}},
       v.introEl, v.homeEl, v.authEl, v.selectEl, v.planEl,
       v.combatEl, v.shopEl, v.resultEl, v.hudEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
   }
@@ -497,7 +497,7 @@ class Pathomino extends React.Component {
     const wepD=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
     const dodgeBonus=(wepD&&wepD.mod().dodgeBonus)||0;
     const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - e.vit)*0.03 + 0.06 + dodgeBonus));
-    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.C.blue);
+    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.C.gold);
       this.setState({busy:false, enemyTurns:turns, log:`${ch.name} esquive l'attaque !`}); return; }
     const esc = Math.max(0, turns-1) * Math.max(2, Math.round(e.atk*0.15));
     const raw = Math.max(1, (e.atk + esc - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
@@ -1155,7 +1155,12 @@ class Pathomino extends React.Component {
         h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:C.gold,animation:'pmPop .5s ease backwards',animationDelay:'.3s'}}, this.state.bossesBeaten),
           h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'BOSS VAINCUS')),
         h('div',null, h('div',{className:'pm-pixel',style:{fontSize:38,color:C.text,animation:'pmPop .5s ease backwards',animationDelay:'.42s'}}, this.state.best),
-          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'MEILLEUR SCORE'))),
+          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'MEILLEUR SCORE')),
+        h('div',null,
+          h('div',{className:'pm-pixel',style:{fontSize:38,color:C.blue,animation:'pmPop .5s ease backwards',animationDelay:'.54s'}}, this.state.floor),
+          h('div',{style:{fontSize:11,letterSpacing:'.14em',color:C.mut,marginTop:8}}, 'ÉTAGE ATTEINT'))),
+      h('div',{style:{fontSize:12,color:C.mut,marginBottom:16}},
+        'Joué avec : '+( this.state.char ? this.CHARS[this.state.char].name : '—')),
       this.state.newUnlock? h('div',{style:{background:'rgba(134,180,106,.12)',border:'1px solid '+C.green,borderRadius:6,padding:'12px 16px',marginBottom:22,color:C.green,fontSize:13,fontWeight:600}}, '\u2605 ROI VAINCU — Le Voleur est débloqué !') : null,
       this.btn('Nouveau run \u2192', ()=>this.setState({screen:'select'}), {primary:true,wide:true})
     );
