@@ -548,7 +548,7 @@ class Pathomino extends React.Component {
     const sk=Object.keys(this.SHAPES);
     const pieces=Array.from({length:3},()=>({shape:sk[this.rnd(0,sk.length-1)],price:this.rnd(8,12),sold:false}));
     const cards=Array.from({length:3},()=>({rank:this.rnd(9,14),suit:this.SUITS[this.rnd(0,3)],price:this.rnd(10,16),sold:false}));
-    const wepKeys=Object.keys(this.WEAPONS);
+    const wepKeys=Object.keys(this.WEAPONS).filter(k=>k!==this.state.weapon);
     const weapons=pick(wepKeys,Math.min(2,wepKeys.length)).map(k=>({key:k,price:this.WEAPONS[k].price,sold:false}));
     const trimCard = this.state.deck.length>10 ? {type:'trimCard',price:8,sold:false} : null;
     const trimPiece = this.state.hand.length>3 ? {type:'trimPiece',price:6,sold:false} : null;
@@ -1138,12 +1138,16 @@ class Pathomino extends React.Component {
           section('PI\u00c8CES', 't\u00e9trominos pour ta main', pieceOffers),
           section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers),
           section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers),
-          section('\u00c9LAGUER', 'all\u00e8ge tes decks', (()=>{
+          (()=>{
             const portalResetOffer=shop.portalReset?offer(shop.portalReset.price,shop.portalReset.sold,gold>=shop.portalReset.price,()=>this.buyShop('portalReset'),
               h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+C.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:C.blue}},'\u29bf'),
               72, h('div',{style:{fontSize:10,color:C.mut,marginTop:2,textAlign:'center'}}, 'Recharger le portail'), 9):null;
-            return [trimCardOffer,trimPieceOffer,portalResetOffer].filter(Boolean);
-          })()))));
+            const elaguerOffers=[trimCardOffer,trimPieceOffer,portalResetOffer].filter(Boolean);
+            return elaguerOffers.length>0?section('\u00c9LAGUER', 'all\u00e8ge tes decks', elaguerOffers):null;
+          })()
+        )
+      )
+    )
   }
 
   renderResult(){
