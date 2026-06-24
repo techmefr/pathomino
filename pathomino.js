@@ -53,6 +53,12 @@ class Pathomino extends React.Component {
     pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ active réduction -3 att ennemie',mod:(m,t)=>{m.spadeEnabled=true;}},
     royal:{name:'Sang Royal',glyph:'♛',color:'#e0a53b',price:8,desc:'Suite, couleur, full+ : +60% dégâts',mod:(m,t)=>{ if(['suite','couleur','full','carre','quinteflush'].includes(t)) m.dmgMult*=1.6; }}
   };
+  WEAPONS = {
+    epee: {name:'\u00c9p\u00e9e',   glyph:'\u2694', price:10, desc:'+8 d\u00e9g\u00e2ts plats',            mod:()=>({dmgFlat:8})},
+    hache:{name:'Hache',   glyph:'\u2692', price:14, desc:'+18% de tous les d\u00e9g\u00e2ts',     mod:()=>({dmgMult:1.18})},
+    dague:{name:'Dague',   glyph:'\u2020', price:12, desc:'+4 d\u00e9g\u00e2ts \u00b7 esquive +8%', mod:()=>({dmgFlat:4, dodgeBonus:0.08})},
+    baton:{name:'B\u00e2ton',   glyph:'\u2736', price:13, desc:'Brelan+ : +25% d\u00e9g\u00e2ts',        mod:()=>({strongMult:1.25})},
+  };
   SVG = {
     sword:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/></svg>',
     wand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
@@ -74,7 +80,7 @@ class Pathomino extends React.Component {
     php:100, pmax:100,
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
-    voleurUnlocked:false, mageUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
+    voleurUnlocked:false, mageUnlocked:false, best:0, lastBoss:'', combatPhase:'', newUnlock:false, jokers:[], weapon:null, shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
     showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false
   };
 
@@ -202,7 +208,7 @@ class Pathomino extends React.Component {
     const hand = Array.from({length:ch.pieces}, ()=>this.drawPiece());
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
-      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], shop:null, hand, poisoned:false,
+      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:false, jokers:[], weapon:null, shop:null, hand, poisoned:false,
       showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(e){ return true; } })()
     }, ()=> this.genFloor(true));
   }
@@ -423,6 +429,12 @@ class Pathomino extends React.Component {
     const mods={dmgMult:1, clubEnabled:false, clubX:2, healEnabled:false, healFactor:0.5, drawEnabled:false, drawBonus:0, spadeEnabled:false, spadeBonus:0};
     (this.state.jokers||[]).forEach(k=>{ const j=this.JOKERS[k]; if(j&&j.mod) j.mod(mods,type); });
     dmg = Math.round(dmg*mods.dmgMult);
+    const wep=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
+    if(wep){ const wm=wep.mod();
+      if(wm.dmgFlat) dmg+=wm.dmgFlat;
+      if(wm.dmgMult) dmg=Math.round(dmg*wm.dmgMult);
+      if(wm.strongMult&&['brelan','full','carre','couleur','suite','quinteflush'].includes(type)) dmg=Math.round(dmg*wm.strongMult);
+    }
     const immune=(this.state.enemy&&this.state.enemy.suit)||null;
     const suits=new Set(sel.filter(c=>!c.joker).map(c=>c.suit));
     const H='\u2665',D='\u2666',Cl='\u2663',S='\u2660'; const fx=[];
@@ -471,7 +483,9 @@ class Pathomino extends React.Component {
     const e=this.state.enemy; if(!e||e.hp<=0){ this.setState({busy:false}); return; }
     const ch=this.CHARS[this.state.char];
     const turns=(this.state.enemyTurns||0)+1;
-    const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - e.vit)*0.03 + 0.06));
+    const wepD=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
+    const dodgeBonus=(wepD&&wepD.mod().dodgeBonus)||0;
+    const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - e.vit)*0.03 + 0.06 + dodgeBonus));
     if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.C.blue);
       this.setState({busy:false, enemyTurns:turns, log:`${ch.name} esquive l'attaque !`}); return; }
     const esc = Math.max(0, turns-1) * Math.max(2, Math.round(e.atk*0.15));
@@ -523,13 +537,16 @@ class Pathomino extends React.Component {
     const sk=Object.keys(this.SHAPES);
     const pieces=Array.from({length:3},()=>({shape:sk[this.rnd(0,sk.length-1)],price:this.rnd(8,12),sold:false}));
     const cards=Array.from({length:3},()=>({rank:this.rnd(9,14),suit:this.SUITS[this.rnd(0,3)],price:this.rnd(10,16),sold:false}));
-    return {jokers,pieces,cards};
+    const wepKeys=Object.keys(this.WEAPONS);
+    const weapons=pick(wepKeys,Math.min(2,wepKeys.length)).map(k=>({key:k,price:this.WEAPONS[k].price,sold:false}));
+    return {jokers,pieces,cards,weapons};
   }
   buyShop(cat,i){ const s=this.state; if(!s.shop) return; const o=s.shop[cat][i]; if(!o||o.sold||s.gold<o.price) return;
     if(cat==='jokers'){ if(s.jokers.length>=5) return; this.setState({jokers:[...s.jokers,o.key]}); }
     else if(cat==='pieces'){ if(s.hand.length>=this.HAND_MAX) return; this.setState({hand:[...s.hand,{uid:Math.random().toString(36).slice(2),key:o.shape}]}); }
     else if(cat==='cards'){ this.setState({deck:[...s.deck,{uid:Math.random().toString(36).slice(2),rank:o.rank,suit:o.suit}]}); }
-    const shop={jokers:[...s.shop.jokers],pieces:[...s.shop.pieces],cards:[...s.shop.cards]};
+    else if(cat==='weapons'){ this.setState({weapon:o.key}); }
+    const shop={jokers:[...s.shop.jokers],pieces:[...s.shop.pieces],cards:[...s.shop.cards],weapons:[...s.shop.weapons]};
     shop[cat]=shop[cat].map((x,j)=>j===i?{...x,sold:true}:x);
     this.sfx('buy'); this.setState({gold:s.gold-o.price, shop});
   }
@@ -888,7 +905,12 @@ class Pathomino extends React.Component {
           h('span',{style:{fontSize:11,color:C.mut}}, 'VIT '+ch.vitesse+(this.state.spadeRed?' · \u2660-'+this.state.spadeRed:''))),
         h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+C.line}},
           h('div',{style:{height:'100%',width:phpPct+'%',background:phpPct>30?'linear-gradient(90deg,#e9b24b,#c98a2f)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
-        h('div',{style:{textAlign:'right',fontSize:11,color:C.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV')));
+        h('div',{style:{textAlign:'right',fontSize:11,color:C.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV'),
+        this.state.weapon?h('div',{style:{display:'flex',alignItems:'center',gap:5,marginTop:6,paddingTop:6,borderTop:'1px solid '+C.line}},
+          h('span',{style:{fontSize:14,color:C.gold}}, this.WEAPONS[this.state.weapon].glyph),
+          h('span',{style:{fontSize:10,color:C.mut}}, this.WEAPONS[this.state.weapon].name),
+          h('span',{style:{fontSize:10,color:C.gold2}}, this.WEAPONS[this.state.weapon].desc)):null));
+  // heroBox closing
 
     const hand=this.state.chand; const nC=hand.length;
     const fan=hand.map((card,i)=>{
@@ -971,7 +993,7 @@ class Pathomino extends React.Component {
 
   renderShop(port){
     const C=this.C,h=React.createElement;
-    const shop=this.state.shop||{jokers:[],pieces:[],cards:[]};
+    const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[]};
     const gold=this.state.gold;
     const tag=(price,sold)=>h('div',{style:{marginBottom:-9,zIndex:2,position:'relative',padding:'3px 9px',borderRadius:5,fontFamily:'Press Start 2P',fontSize:8,letterSpacing:'.02em',
       background:sold?C.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?C.mut:'#1a1207',border:'1px solid '+(sold?C.line:C.gold2)}}, sold?'VENDU':price+' or');
@@ -992,6 +1014,15 @@ class Pathomino extends React.Component {
         h('span',{style:{fontSize:11,color:C.mut}}, sub)),
       h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',background:'#0c0a09',border:'1px solid '+C.line,borderRadius:8,padding:'12px 14px',minHeight:96}}, offers.length?offers:h('span',{style:{fontSize:12,color:C.mut,alignSelf:'center'}}, '\u2014 \u00e9puis\u00e9')));
 
+    const weaponCard=(w)=>h('div',{style:{width:78,height:92,borderRadius:8,background:'linear-gradient(165deg,#241a10,#140e08)',border:'1.5px solid '+C.gold2,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4}},
+      h('div',{style:{fontSize:32,color:C.gold}},'\u2694'.replace('\u2694',w.glyph||'\u2694')),
+      h('div',{style:{fontSize:8,color:C.mut,letterSpacing:'.1em'}}, 'ARME'));
+    const curWep=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
+    const weaponOffers=shop.weapons.map((o,i)=>{ const w=this.WEAPONS[o.key]; const afford=gold>=o.price;
+      return offer(o.price,o.sold,afford,()=>this.buyShop('weapons',i), weaponCard(w), 100,
+        h('div',{style:{textAlign:'center',marginTop:2}},
+          h('div',{style:{fontSize:11,fontWeight:700,color:C.gold}}, w.name),
+          h('div',{style:{fontSize:10,color:C.mut,lineHeight:1.3,marginTop:2}}, w.desc)), i+6); });
     const jokerOffers=shop.jokers.map((o,i)=>{ const j=this.JOKERS[o.key]; const afford=gold>=o.price && this.state.jokers.length<5;
       return offer(o.price,o.sold,afford,()=>this.buyShop('jokers',i), jokerCard(j), 122,
         h('div',{style:{textAlign:'center',marginTop:2}},
@@ -1023,7 +1054,8 @@ class Pathomino extends React.Component {
         h('div',{style:{flex:1}},
           section('JOKERS', 'passifs \u2014 amplifient tes pouvoirs', jokerOffers),
           section('PI\u00c8CES', 't\u00e9trominos pour ta main', pieceOffers),
-          section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers))));
+          section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers),
+          section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers))));
   }
 
   renderResult(){
