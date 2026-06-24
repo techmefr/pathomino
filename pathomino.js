@@ -27,6 +27,14 @@ class Pathomino extends React.Component {
   HAND_MAX = 10;
   FLOOR_REFILL = 2;
   MAX_SCALE = 2;
+  SPRITES = {
+    chevalier:{ pal:{K:'#14100c',M:'#8b919b',L:'#d2d8e0',D:'#5a5f68',V:'#2f333a',E:'#bfe9ff',A:'#e0a53b',C:'#f3c976'},
+      rows:['..A.......A..','..AK.....KA..','...KKKKKKK...','..KLLLLLLLK..','..KLMMMMMLK..','..KMVVVVVMK..','..KMEKKKEMK..','..KMMMMMMMK..','.KKMMMMMMMKK.','KAAMMMCMMMAAK','KAAMMMCMMMAAK','.KMMMCCCMMMK.','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] },
+    mage:{ pal:{K:'#14100c',M:'#3f5d86',L:'#6f9bca',S:'#e8c39a',E:'#bfe9ff',A:'#e0a53b',O:'#7fd7ff',W:'#6b4a2a',H:'#f3c976'},
+      rows:['.....KK......','....KHHK.....','...KMHHMK.OO.','...KMMMMK.OO.','..KMMMMMK..W.','..KMMMMMK..W.','...KKSSKK..W.','..KSEKEK...W.','..KSSSSK..WW.','.KMMMMMMK.W..','.KMMLLLMMKW..','KMMLLLLLMMK..','KMMMMMMMMMK..','.KMMMK.KMMK..','..KK.....KK..'] },
+    voleur:{ pal:{K:'#14100c',M:'#3c5a3a',L:'#6fae5e',D:'#26371f',S:'#caa37a',E:'#d6ff7a',A:'#86b46a',B:'#c9c2b4',H:'#6b4a2a'},
+      rows:['....KKKKK....','...KMMMMMK...','..KMLLLLLMK..','..KMM...MMK..','..KMKSSSKMK..','..KMSEKESMK..','...KKSSSKK...','.B..KMMMK..B.','HB..KMMMK..BH','.H.KMMMMMK.H.','..KMMLLLMMK..','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] }
+  };
   BOSSES = [
     {key:'cavalier',glyph:'\u265E',name:'Cavalier',hpMul:1.0,atkMul:1.15,vit:11,trait:'Rapide, difficile à toucher'},
     {key:'fou',glyph:'\u265D',name:'Fou',hpMul:1.1,atkMul:1.3,vit:7,trait:'Attaque magique perçante'},
@@ -116,6 +124,11 @@ class Pathomino extends React.Component {
   scaleWrap(el, baseW, baseH){ if(!el) return null; const h=React.createElement;
     const scale=this.fitScale(baseW, baseH);
     return h('div',{style:{width:baseW, transform:`scale(${scale})`, transformOrigin:'center center'}}, el); }
+  pixelSprite(key, px){ const h=React.createElement; const sp=this.SPRITES[key]; if(!sp) return null;
+    const w=Math.max(...sp.rows.map(r=>r.length)), hgt=sp.rows.length; const cells=[];
+    sp.rows.forEach((row,r)=>{ for(let c=0;c<row.length;c++){ const col=sp.pal[row[c]];
+      if(col) cells.push(h('div',{key:r+'_'+c,style:{position:'absolute',left:c*px,top:r*px,width:px,height:px,background:col}})); } });
+    return h('div',{style:{position:'relative',width:w*px,height:hgt*px,imageRendering:'pixelated',filter:'drop-shadow(0 4px 0 rgba(0,0,0,.4))'}}, cells); }
   startDrag(i,e){ if(e&&e.preventDefault)e.preventDefault();
     const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
     const x = pt&&pt.clientX!=null?pt.clientX:0, y = pt&&pt.clientY!=null?pt.clientY:0;
@@ -674,12 +687,7 @@ class Pathomino extends React.Component {
     const heroSprite=h('div',{key:'hsp'+(this.state.combatSeq||0),style:{animation:'pmHeroIn .5s cubic-bezier(.2,.9,.25,1) backwards',animationDelay:'.12s'}},
       h('div',{style:{position:'relative',textAlign:'center',animation:this._shake==='hero'?'pmShake .45s':'none'}},
       floats('hero'),
-      h('div',{style:{position:'relative',width:120,height:120}},
-        h('div',{style:{position:'absolute',left:'50%',bottom:0,transform:'translateX(-50%)',width:86,height:92,
-          background:'linear-gradient(180deg,'+ch.color+',#2a211a)',borderRadius:'46% 46% 30% 30%/60% 60% 40% 40%',border:'2px solid #1a1410'}}),
-        h('div',{style:{position:'absolute',left:'50%',top:6,transform:'translateX(-50%)',width:44,height:44,borderRadius:'50%',
-          background:'#1a1410',border:'2px solid '+ch.color}}, this.state.char==='chevalier'?h('div',{style:{position:'absolute',inset:'4px 10px',top:-8,borderRadius:'4px 4px 0 0',background:'#3a312a',borderBottom:'none'}}):null),
-        this.state.char==='mage'? h('div',{style:{position:'absolute',left:'50%',top:-30,transform:'translateX(-50%)',width:0,height:0,borderLeft:'22px solid transparent',borderRight:'22px solid transparent',borderBottom:'34px solid #2a3a4a'}}):null),
+      h('div',{style:{display:'flex',justifyContent:'center',alignItems:'flex-end',width:130,height:128}}, this.pixelSprite(this.state.char, 8)),
       h('div',{style:{width:120,height:18,margin:'0 auto',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
 
     const heroBox=(w)=>h('div',{style:{width:w}},
