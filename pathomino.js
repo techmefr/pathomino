@@ -26,6 +26,7 @@ class Pathomino extends React.Component {
   PIECE_WEIGHTS = {I:3,O:3,L:3,J:2,T:2,S:1,Z:1};
   HAND_MAX = 10;
   FLOOR_REFILL = 2;
+  MAX_SCALE = 2;
   BOSSES = [
     {key:'cavalier',glyph:'\u265E',name:'Cavalier',hpMul:1.0,atkMul:1.15,vit:11,trait:'Rapide, difficile à toucher'},
     {key:'fou',glyph:'\u265D',name:'Fou',hpMul:1.1,atkMul:1.3,vit:7,trait:'Attaque magique perçante'},
@@ -107,10 +108,13 @@ class Pathomino extends React.Component {
     window.addEventListener('resize', this._resize);
   }
   componentWillUnmount(){ window.removeEventListener('keydown', this._key); window.removeEventListener('mousemove', this._move); window.removeEventListener('mouseup', this._up); window.removeEventListener('touchmove', this._tmove); window.removeEventListener('touchend', this._tend); window.removeEventListener('touchcancel', this._tend); window.removeEventListener('resize', this._resize); }
-  scaleWrap(el, baseW, baseH){ if(!el) return null; const h=React.createElement;
+  fitScale(baseW, baseH){
     const vw=this.state.vw||(typeof window!=='undefined'?window.innerWidth:1280);
     const vh=this.state.vh||(typeof window!=='undefined'?window.innerHeight:800);
-    const scale=Math.min(1, (vw-14)/baseW, (vh-14)/baseH);
+    return Math.min(this.MAX_SCALE, (vw-14)/baseW, (vh-14)/baseH);
+  }
+  scaleWrap(el, baseW, baseH){ if(!el) return null; const h=React.createElement;
+    const scale=this.fitScale(baseW, baseH);
     return h('div',{style:{width:baseW, transform:`scale(${scale})`, transformOrigin:'center center'}}, el); }
   startDrag(i,e){ if(e&&e.preventDefault)e.preventDefault();
     const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
@@ -844,7 +848,7 @@ class Pathomino extends React.Component {
     const piece=s.hand[s.selPiece]; if(!piece) return null;
     const n=s.grid.n; const cell=Math.min(Math.floor(440/n),52);
     const vw=s.vw||1280, vh=s.vh||800; const port=vh>vw;
-    const scale=port? Math.min(1,(vw-14)/528,(vh-14)/1040) : Math.min(1,(vw-14)/1092,(vh-14)/690);
+    const scale=port? this.fitScale(528,1040) : this.fitScale(1092,690);
     const u=Math.max(8, Math.round(cell*scale)-2);
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
       this.miniPiece(piece.key, s.rot, u, this.C.gold2));
