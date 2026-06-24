@@ -7,17 +7,20 @@ Un puzzle-roguelike de donjon : trace ton chemin avec des pièces géométriques
 
 ## Stack
 
-Prototype web autonome, sans build :
+Prototype web autonome, sans build et **sans aucune dépendance réseau** (marche hors-ligne) :
 
-- `index.html` — coquille HTML : polices, styles, montage React.
+- `index.html` — coquille HTML : styles, montage React.
 - `pathomino.js` — toute la logique de jeu (composant `React.Component`).
-- React 18 chargé via CDN (`unpkg`).
+- `vendor/` — React 18 (UMD) et les polices (Space Grotesk, Press Start 2P), servis en local.
 
-Ouvre simplement `index.html` dans un navigateur, ou sers le dossier :
+Aucun serveur requis : **double-clique `index.html`** (`file://`) et c'est jouable.
+
+Pour reproduire les conditions GitHub Pages, sers le dossier avec n'importe quel
+serveur statique, par exemple :
 
 ```bash
-python3 -m http.server 8080
-# puis http://localhost:8080
+npx serve .
+# ou : python3 -m http.server 8080
 ```
 
 ## Origine
