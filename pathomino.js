@@ -702,21 +702,17 @@ class Pathomino extends React.Component {
             style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:C.p2,border:'1px solid '+C.line2,color:C.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
       h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?16:26,alignItems:port?'center':'flex-start'}},
         h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, grid,
-          h('div',{style:{display:'flex',gap:18,marginTop:14,flexWrap:'wrap'}}, legend.map(([ic,lab])=>
-            h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:7,fontSize:12,color:C.mut}},
-              ic==='pawn'?h('span',{style:{color:C.mut,fontSize:16}},'\u265F'): ic==='boss'?h('span',{style:{color:C.red,fontSize:16}},bdef.glyph): this.icon(ic,16, ic==='key'?C.gold2:C.text), lab)))),
+          ),
         h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:C.p1,border:'1px solid '+C.line,borderRadius:8,padding:port?16:20}},
-          h('div',{style:{fontSize:11,letterSpacing:'.16em',color:C.gold,marginBottom:6}}, 'PHASE DE PLANIFICATION'),
-          h('p',{style:{fontSize:13,color:C.mut,lineHeight:1.5,marginBottom:16}}, 'Place des tétrominos pour relier le départ à la clé puis à la porte. Passe sur les pions pour les combattre, ou contourne-les.'),
+
           h('div',{style:{fontSize:11,letterSpacing:'.12em',color:C.mut,marginBottom:10}}, 'TA MAIN'),
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12,lineHeight:1.45}}, 'Vise sur la grille (survole ou touche une case), puis clique pour poser — la pièce se cale au plus près. R · molette · clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12,lineHeight:1.45}}, 'Touche une pièce pour la prendre, puis vise la grille et clique pour la poser.'),
+          this.state.selPiece!==null? h('div',{style:{fontSize:12,color:C.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:C.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
-            this.btn([this.icon('rotate',14),' Pivoter'], ()=>this.rotate(), {small:true,disabled:this.state.selPiece===null}),
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length})),
           h('div',{style:{height:1,background:C.line,margin:'14px 0'}}),
           h('div',{style:{fontSize:13,color:chk.ok?C.green:C.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
-          hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12,lineHeight:1.4}}, '\u26a0 Des pièces (en pointillés) ne sont pas reliées : elles doivent se toucher par les côtés, pas par les coins.') : null,
+          hasOrphan? h('div',{style:{fontSize:12,color:C.red,marginBottom:12}}, 'Pièces non reliées') : null,
           this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
           this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true})
         )
