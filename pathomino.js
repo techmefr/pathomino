@@ -281,7 +281,7 @@ class Pathomino extends React.Component {
   }
   eq(a,b){ return a[0]===b[0]&&a[1]===b[1]; }
 
-  placedMap(){ const m={}; this.state.placed.forEach(pl=>pl.cells.forEach(c=>{pmap[c.join(',')]=true;})); return m; }
+  placedMap(){ const pmap={}; this.state.placed.forEach(pl=>pl.cells.forEach(c=>{pmap[c.join(',')]=true;})); return pmap; }
   ghostCells(){
     if(this.state.selPiece===null || !this.state.ghost) return null;
     const piece = this.state.hand[this.state.selPiece]; if(!piece) return null;
