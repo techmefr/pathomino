@@ -858,7 +858,7 @@ class Pathomino extends React.Component {
       isShop:s.screen==='shop', isResult:s.screen==='result',
       homeEl:s.screen==='home'?this.scaleWrap(this.renderHome(port), port?360:880, port?900:660):null,
       authEl:s.screen==='auth'?this.scaleWrap(this.renderAuth(port), port?340:420, port?620:560):null,
-      selectEl:s.screen==='select'?this.scaleWrap(this.renderSelect(port), port?360:820, port?960:700):null,
+      selectEl:s.screen==='select'?this.scaleWrap(this.renderSelect(port), port?360:820, port?1400:700):null,
       planEl:s.screen==='plan'?this.scaleWrap(this.renderPlan(port), port?528:1092, port?1040:690):null,
       combatEl:s.screen==='combat'?this.scaleWrap(this.renderCombat(port), port?464:920, port?884:600):null,
       shopEl:s.screen==='shop'?this.scaleWrap(this.renderShop(port), port?452:884, port?908:712):null,
