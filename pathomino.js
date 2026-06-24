@@ -359,7 +359,7 @@ class Pathomino extends React.Component {
       if(this.rnd(0,1)===0){
         const bonus=this.rnd(15,25);
         const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(12,14), suit:this.SUITS[this.rnd(0,3)]};
-        st.gold=this.statenemy.gold+bonus; st.deck=[...this.state.deck, card];
+        st.gold=this.state.gold+bonus; st.deck=[...this.state.deck, card];
         st.log=`Trésor ! +${bonus} or et une carte forte.`; this.sfx('coin');
       } else {
         const f=this.state.floor; const hp=Math.round(60+f*10);
@@ -473,8 +473,8 @@ class Pathomino extends React.Component {
     if(combo.heal){ php=Math.min(this.state.pmax, php+combo.heal); }
     if(combo.spade){ spadeRed += combo.spade; }
     let deck=this.state.deck;
-    this.addFloat('enemy', '-'+combo.dmg, this.clr.gold2);
-    this.sfx('hit'); if(combo.heal){ this.sfx('heal'); this.addFloat('hero','+'+combo.heal, this.clr.green); }
+    this.addFloat('enemy', '-'+combo.dmg, this.C.gold2);
+    this.sfx('hit'); if(combo.heal){ this.sfx('heal'); this.addFloat('hero','+'+combo.heal, this.C.green); }
     let target=8+(combo.draw||0);
     const rf=this.refill(deck, discard, chand, Math.min(11,target)); deck=rf.deck; discard=rf.discard; chand=rf.hand;
     this.setState({chand, deck, discard, enemy, php, spadeRed, csel:[], hitFlash:(this.state.hitFlash||0)+1, log:`${combo.name} — ${combo.dmg} dégâts${combo.effect? ' · '+combo.effect:''}`});
@@ -497,25 +497,25 @@ class Pathomino extends React.Component {
     const wepD=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
     const dodgeBonus=(wepD&&wepD.mod().dodgeBonus)||0;
     const dodgeCh = Math.min(0.45, Math.max(0.04, (ch.vitesse - enemy.vit)*0.03 + 0.06 + dodgeBonus));
-    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.clr.gold);
+    if(Math.random()<dodgeCh){ this.addFloat('hero','Esquive !', this.C.gold);
       this.setState({busy:false, enemyTurns:turns, log:`${ch.name} esquive l'attaque !`}); return; }
     const esc = Math.max(0, turns-1) * Math.max(2, Math.round(enemy.atk*0.15));
     const raw = Math.max(1, (enemy.atk + esc - Math.floor(ch.defense/2) - this.state.spadeRed) + this.rnd(-1,2));
     const poisonDmg=this.state.poisoned?3:0;
     const php=Math.max(0, this.state.php - raw - poisonDmg);
-    this.sfx('hurt'); this.addFloat('hero','-'+(raw+poisonDmg), this.clr.red); this.shakeEl('hero');
+    this.sfx('hurt'); this.addFloat('hero','-'+(raw+poisonDmg), this.C.red); this.shakeEl('hero');
     this.setState({php, busy:false, enemyTurns:turns, log:`${enemy.name} riposte — ${raw} dégâts${esc>0?' (enragé +'+esc+')':''}${poisonDmg>0?' + 3 poison':''}`});
     if(php<=0){ setTimeout(()=>this.death(), 800); }
   }
   winCombat(){
-    const enemy=this.state.enemy; const gold=this.statenemy.gold + enemy.gold;
+    const enemy=this.state.enemy; const gold=this.state.gold + enemy.gold;
     this.sfx(enemy.kind==='boss'?'win':'coin');
-    this.addFloat('enemy','+'+enemy.gold+' or', this.clr.gold);
+    this.addFloat('enemy','+'+enemy.gold+' or', this.C.gold);
     let st={gold, log:`${enemy.name} vaincu ! +${enemy.gold} or`};
     if(this.rnd(0,99) < (enemy.kind==='boss'?100:35)){
       const card={uid:Math.random().toString(36).slice(2), rank:this.rnd(10,14), suit:this.SUITS[this.rnd(0,3)]};
       st.deck=[...this.state.deck, card]; st.log+=' · butin : +1 carte au deck';
-      this.addFloat('enemy','+carte', this.clr.blue);
+      this.addFloat('enemy','+carte', this.C.blue);
     }
     this.setState(st);
     setTimeout(()=>{ this.setState({screen:'plan'}); setTimeout(()=>this.advanceQueue(), 450); }, 1000);
@@ -581,7 +581,7 @@ class Pathomino extends React.Component {
     shop[cat]=shop[cat].map((x,j)=>j===i?{...x,sold:true}:x);
     this.sfx('buy'); this.setState({gold:snap.gold-o.price, shop});
   }
-  rerollShop(){ if(this.statenemy.gold<5) return; this.setState({gold:this.statenemy.gold-5, shop:this.genShop()}); }
+  rerollShop(){ if(this.state.gold<5) return; this.setState({gold:this.state.gold-5, shop:this.genShop()}); }
   leaveShop(){ this.setState({screen:'plan'}, ()=>this.genFloor()); }
 
   addFloat(target,text,color){ const id=Math.random().toString(36).slice(2);
@@ -873,7 +873,7 @@ class Pathomino extends React.Component {
             `Étage ${head} · ${boss?'BOSS — '+bdef.name : 'Normal'}`)),
         h('div',{style:{display:'flex',gap:18,alignItems:'center'}},
           this.statChip('heart', this.state.php+'/'+this.state.pmax, clr.red),
-          this.statChip('coin', this.statenemy.gold, clr.gold),
+          this.statChip('coin', this.state.gold, clr.gold),
           h('span',{style:{fontSize:12,color:clr.mut}}, this.state.bossesBeaten+' boss vaincus'),
           h('button',{onClick:()=>this.openTuto(), title:'Comment jouer',
             style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:clr.p2,border:'1px solid '+clr.line2,color:clr.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
@@ -900,10 +900,10 @@ class Pathomino extends React.Component {
           this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
           this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true}),
           this.state.weapon ? h('div',{style:{display:'flex',alignItems:'center',gap:8,marginTop:10,padding:'6px 10px',background:'rgba(224,165,59,.08)',border:'1px solid #4a3a1a',borderRadius:5,fontSize:11}},
-            h('span',{style:{fontSize:16,color:this.clr.gold}}, this.WEAPONS[this.state.weapon].glyph),
+            h('span',{style:{fontSize:16,color:this.C.gold}}, this.WEAPONS[this.state.weapon].glyph),
             h('div',null,
-              h('div',{style:{color:this.clr.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
-              h('div',{style:{color:this.clr.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
+              h('div',{style:{color:this.C.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
+              h('div',{style:{color:this.C.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
         )
       )
     );
@@ -1053,14 +1053,14 @@ class Pathomino extends React.Component {
     const dealAnim = (typeof idx==='number') ? {animation:'pmDealUp .42s cubic-bezier(.2,.8,.2,1) backwards', animationDelay:(idx*0.045)+'s'} : {};
     if(card.joker){
       return h('div',{style:{width:60,height:86,borderRadius:6,background:'linear-gradient(160deg,#2a2438,#171320)',
-        border:'2px solid '+(seld?this.clr.gold:'#5a4a8a'),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        border:'2px solid '+(seld?this.C.gold:'#5a4a8a'),display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
         boxShadow:seld?'0 0 16px rgba(224,165,59,.6)':'0 4px 8px rgba(0,0,0,.5)',...dealAnim}},
         h('div',{style:{fontSize:30,color:'#caa9ff'}}, '\u2605'),
         h('div',{style:{fontSize:9,letterSpacing:'.1em',color:'#9a86c4',marginTop:4}}, 'JOKER'));
     }
     const red = card.suit==='\u2665'||card.suit==='\u2666';
     const col=red?clr.red:clr.ink; const lab=this.rankLabel(card.rank);
-    return h('div',{style:{width:60,height:86,borderRadius:6,background:clr.bg,border:'2px solid '+(seld?this.clr.gold:clr.line),
+    return h('div',{style:{width:60,height:86,borderRadius:6,background:clr.bg,border:'2px solid '+(seld?this.C.gold:clr.line),
       position:'relative',boxShadow:seld?'0 0 16px rgba(224,165,59,.6)':'0 4px 8px rgba(0,0,0,.5)',...dealAnim}},
       h('div',{style:{position:'absolute',top:4,left:6,fontSize:14,fontWeight:700,color:col,lineHeight:1,textAlign:'center'}}, lab, h('div',{style:{fontSize:11}},card.suit)),
       h('div',{style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:30,color:col}}, card.suit),
@@ -1070,7 +1070,7 @@ class Pathomino extends React.Component {
   renderShop(port){
     const clr=this.C,h=React.createElement;
     const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[],trimCard:null,trimPiece:null,portalReset:null};
-    const gold=this.statenemy.gold;
+    const gold=this.state.gold;
     const tag=(price,sold)=>h('div',{style:{marginBottom:-9,zIndex:2,position:'relative',padding:'3px 9px',borderRadius:5,fontFamily:'Press Start 2P',fontSize:8,letterSpacing:'.02em',
       background:sold?clr.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?clr.mut:'#1a1207',border:'1px solid '+(sold?clr.line:clr.gold2)}}, sold?'VENDU':price+' or');
     const offer=(price,sold,afford,onBuy,inner,capW,caption,di)=>h('div',{style:{width:capW,display:'flex',flexDirection:'column',alignItems:'center',animation:'pmScaleIn .4s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.06*(di||0))+'s'}},
@@ -1179,12 +1179,12 @@ class Pathomino extends React.Component {
     const scale=port? this.fitScale(528,1040) : this.fitScale(1092,690);
     const u=Math.max(8, Math.round(cell*scale)-2);
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
-      this.miniPiece(piecevt.key, s.rot, u, this.clr.gold2));
+      this.miniPiece(piecevt.key, s.rot, u, this.C.gold2));
   }
   miniCells(cells,u,color,gap){ const h=React.createElement;
     const set=new Set(cells.map(c=>c.join(','))); const rows=Math.max(...cells.map(c=>c[0]))+1, cols=Math.max(...cells.map(c=>c[1]))+1; const out=[];
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ out.push(h('div',{key:r+','+c,style:{width:u,height:u,borderRadius:2,
-      background:set.has(r+','+c)?color:'#1a1614',border:'1px solid '+(set.has(r+','+c)?color:this.clr.line)}})); }
+      background:set.has(r+','+c)?color:'#1a1614',border:'1px solid '+(set.has(r+','+c)?color:this.C.line)}})); }
     return h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u+2}px)`,gap:gap||3}}, out); }
   renderMute(){ const clr=this.C,h=React.createElement;
     return h('button',{onClick:()=>this.toggleMute(), title:this.state.muted?'Activer le son':'Couper le son',
