@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pathomino — puzzle-roguelike de donjon</title>
+  <meta name="description" content="Un puzzle-roguelike de donjon : trace ton chemin avec des pieces geometriques, combats avec des cartes, survis le plus longtemps possible.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230e0c0b'/%3E%3Crect x='30' y='30' width='20' height='20' fill='%23e0a53b'/%3E%3Crect x='50' y='30' width='20' height='20' fill='%23c98a2f'/%3E%3Crect x='50' y='50' width='20' height='20' fill='%23e0a53b'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#0e0c0b;color:#ece4d6;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+button{touch-action:manipulation}
+#pm-root{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(125% 120% at 50% -10%, #1d1713 0%, #0e0c0b 58%, #070605 100%)}
+@keyframes pmShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(6px)}78%{transform:translateX(-3px)}}
+@keyframes pmFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-78px) scale(1.18)}}
+@keyframes pmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pmPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+@keyframes pmDeal{0%{opacity:0;transform:translateY(40px)}100%{opacity:1}}
+@keyframes pmGlow{0%,100%{filter:drop-shadow(0 0 2px rgba(224,165,59,.45))}50%{filter:drop-shadow(0 0 10px rgba(224,165,59,.95))}}
+@keyframes pmFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pmSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes pmPop{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.18);opacity:1}100%{transform:scale(1)}}
+@keyframes pmDealUp{0%{opacity:0;transform:translateY(64px) rotate(-8deg)}100%{opacity:1;transform:translateY(0) rotate(0)}}
+@keyframes pmEnemyIn{0%{opacity:0;transform:translateX(80px) scale(.7)}100%{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes pmHeroIn{0%{opacity:0;transform:translateX(-60px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes pmDefeat{0%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(.3) rotate(220deg) translateY(40px)}}
+@keyframes pmFlash{0%,100%{opacity:0}40%{opacity:.85}}
+@keyframes pmTitleIn{0%{opacity:0;transform:translateY(28px) scale(.92);letter-spacing:.3em}100%{opacity:1;transform:none}}
+@keyframes pmTokenPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(224,165,59,.6)}50%{transform:scale(1.12);box-shadow:0 0 0 7px rgba(224,165,59,0)}}
+@keyframes pmRise{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:none}}
+@keyframes pmScaleIn{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+@keyframes pmSlamIn{0%{opacity:0;transform:scale(1.5)}70%{opacity:1}100%{opacity:1;transform:scale(1)}}
+.pm-pixel{font-family:'Press Start 2P',monospace}
+::selection{background:#e0a53b;color:#0e0c0b}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3a342e;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <noscript>Ce jeu necessite JavaScript.</noscript>
+
+  <!-- React 18 (UMD) : expose window.React / window.ReactDOM -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+
+  <script src="./pathomino.js"></script>
+  <script>
+    ReactDOM.createRoot(document.getElementById('app'))
+      .render(React.createElement(Pathomino));
+  </script>
+</body>
+</html>

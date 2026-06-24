@@ -1,0 +1,3 @@
+# prototype source archive + extraction (kept locally, not deployed)
+*.zip
+_extracted/
