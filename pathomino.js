@@ -3,7 +3,7 @@ class Pathomino extends React.Component {
     const h = React.createElement;
     const v = this.renderVals();
     return h('div', {id:'pm-root'},
-      v.homeEl, v.authEl, v.selectEl, v.planEl,
+      v.introEl, v.homeEl, v.authEl, v.selectEl, v.planEl,
       v.combatEl, v.shopEl, v.resultEl, v.dragOverlay, v.tutoOverlay, v.muteBtn);
   }
 
@@ -69,7 +69,7 @@ class Pathomino extends React.Component {
   };
 
   state = {
-    screen:'home', char:null, account:null, authName:'', authPass:'', authMode:'create', authErr:'',
+    screen:'intro', char:null, account:null, authName:'', authPass:'', authMode:'create', authErr:'',
     floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
     php:100, pmax:100,
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
@@ -520,6 +520,23 @@ class Pathomino extends React.Component {
     }, onMouseDown:e=>{if(!disabled)e.currentTarget.style.transform='translateY(2px)';},
        onMouseUp:e=>e.currentTarget.style.transform='none',
        onMouseLeave:e=>e.currentTarget.style.transform='none'}, label); }
+
+  renderIntro(){
+    const h=React.createElement;
+    const goSelect=()=>this.setState({screen:'select'});
+    const goAuth=()=>this.setState({screen:'auth'});
+    const ob={position:'absolute',background:'transparent',border:'none',cursor:'pointer',opacity:0,padding:0};
+    return h('div',{style:{position:'fixed',inset:0,background:'#0e0c0b',display:'flex',alignItems:'center',justifyContent:'center'}},
+      h('div',{style:{position:'relative',display:'inline-flex',maxHeight:'100dvh',maxWidth:'100vw'}},
+        h('img',{src:'./Gemini_Generated_Image_bhuro7bhuro7bhur.png',draggable:false,
+          style:{display:'block',maxHeight:'100dvh',maxWidth:'100vw',width:'auto',height:'auto'}}),
+        h('button',{onClick:goSelect,'aria-label':'Commencer',
+          style:{...ob,top:'88%',bottom:'1%',left:'2%',right:'52%'}}),
+        h('button',{onClick:goAuth,'aria-label':'Se connecter',
+          style:{...ob,top:'88%',bottom:'1%',left:'52%',right:'2%'}})
+      )
+    );
+  }
 
   renderHome(port){
     const C=this.C,h=React.createElement; const acc=this.state.account;
@@ -1025,9 +1042,10 @@ class Pathomino extends React.Component {
     const s=this.state;
     const port = (s.vh||800) > (s.vw||1280);
     return {
-      isHome:s.screen==='home', isAuth:s.screen==='auth',
+      isIntro:s.screen==='intro', isHome:s.screen==='home', isAuth:s.screen==='auth',
       isSelect:s.screen==='select', isPlan:s.screen==='plan', isCombat:s.screen==='combat',
       isShop:s.screen==='shop', isResult:s.screen==='result',
+      introEl:s.screen==='intro'?this.renderIntro():null,
       homeEl:s.screen==='home'?this.scaleWrap(this.renderHome(port), port?360:880, port?900:660):null,
       authEl:s.screen==='auth'?this.scaleWrap(this.renderAuth(port), port?340:420, port?620:560):null,
       selectEl:s.screen==='select'?this.scaleWrap(this.renderSelect(port), port?360:820, port?1400:700):null,
