@@ -105,6 +105,7 @@ class Pathomino extends React.Component {
         rotate:()=>tone(560,0.05,'square',0.10),
         bad:()=>tone(150,0.14,'sawtooth',0.15),
         valid:()=>{tone(523,0.09,'triangle',0.15);tone(784,0.13,'triangle',0.15,0.09);},
+        ready:()=>{tone(659,0.07,'triangle',0.10);tone(880,0.10,'triangle',0.09,0.06);},
         hit:()=>{tone(220,0.09,'square',0.17);tone(110,0.13,'sawtooth',0.13,0.02);},
         heal:()=>{tone(660,0.1,'triangle',0.14);tone(880,0.12,'triangle',0.12,0.08);},
         hurt:()=>tone(190,0.15,'sawtooth',0.17),
@@ -177,7 +178,7 @@ class Pathomino extends React.Component {
     if(!this.ghostValid(cells)){ this.sfx('bad'); this.setState({ghost:[ar,ac]}); return; }
     const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
-    this.setState({placed, hand, selPiece:null, ghost:null, rot:0});
+    this.setState({placed, hand, selPiece:null, ghost:null, rot:0}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells); }
   markPlaced(cells){ const keys=cells.map(c=>c.join(',')); this.setState({justPlaced:keys});
     clearTimeout(this._jpT); this._jpT=setTimeout(()=>this.setState({justPlaced:[]}),360); }
@@ -291,11 +292,19 @@ class Pathomino extends React.Component {
     const piece=this.state.hand[this.state.selPiece];
     const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
-    this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false});
+    this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells);
   }
   undo(){ const placed=[...this.state.placed]; const last=placed.pop(); if(!last)return;
     this.setState({placed, hand:[...this.state.hand, {uid:last.uid,key:last.key}]}); }
+  retrievePiece(r,c){ if(this.state.executing) return;
+    const k=r+','+c;
+    const idx=this.state.placed.findIndex(pl=>pl.cells.some(c=>c.join(',')===k));
+    if(idx===-1) return;
+    const pl=this.state.placed[idx];
+    const placed=this.state.placed.filter((_,i)=>i!==idx);
+    this.setState({placed, hand:[...this.state.hand, {uid:pl.uid,key:pl.key}]});
+    this.sfx('select'); }
   pickPiece(){ if(this.state.hand.length>=this.HAND_MAX || this.state.drawsLeft<=0)return; this.sfx('place'); this.setState(s=>({hand:[...s.hand, this.drawPiece()], drawsLeft:s.drawsLeft-1})); }
 
   pathOk(){
@@ -751,7 +760,7 @@ class Pathomino extends React.Component {
       cells.push(h('div',{key:k,
         'data-rc':r+','+c,
         onMouseEnter:()=>this.hoverCell(r,c),
-        onClick:()=>this.placeAt(r,c),
+        onClick:()=>{ if(this.state.selPiece===null && m[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c); },
         style:{width:cell,height:cell,background:bg,border:'1px '+bstyle+' '+bd,borderRadius:3,
           display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
           cursor:this.state.selPiece!==null?'pointer':'default',
