@@ -491,7 +491,7 @@ class Pathomino extends React.Component {
     setTimeout(()=>this.enemyTurn(),300);
   }
   enemyTurn(){
-    const enemy=this.state.enemy; if(!e||enemy.hp<=0){ this.setState({busy:false}); return; }
+    const enemy=this.state.enemy; if(!enemy||enemy.hp<=0){ this.setState({busy:false}); return; }
     const ch=this.CHARS[this.state.char];
     const turns=(this.state.enemyTurns||0)+1;
     const wepD=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
