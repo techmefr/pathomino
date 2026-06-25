@@ -712,10 +712,11 @@ class Pathomino extends React.Component {
     const statCol=(val,label)=>h('div',{className:'pm-stats__col'},
       h('div',{className:'pm-stats__val'}, val), h('div',{className:'pm-stats__lbl'}, label));
     const divider=()=>h('div',{className:'pm-stats__div'});
-    const iconSlot=(icon,val,label)=>h('div',{className:'pm-card__icon-slot'},
+    const iconSlot=(icon,val,label,sub)=>h('div',{className:'pm-card__icon-slot'},
       this.icon(icon,20,isLocked?'#8d8377':'#26201b'),
       h('div',{className:'pm-card__icon-val'}, isLocked?'?':val),
-      h('div',{className:'pm-card__icon-lbl'}, label));
+      h('div',{className:'pm-card__icon-lbl'}, label),
+      h('div',{className:'pm-card__icon-sub'}, sub));
 
     // carte « trading card » : tout le style statique est en CSS (.pm-card),
     // seule la couleur du perso reste inline via la variable --c.
@@ -734,9 +735,9 @@ class Pathomino extends React.Component {
         h('div',{className:'pm-card__name'}, isLocked?'???':c.name),
         h('div',{className:'pm-card__desc'}, lockMsg||c.desc)),
       h('div',{className:'pm-card__icons'},
-        iconSlot('tetro', c.pieces, 'Pièces'),
-        iconSlot('draw', c.draws, 'Pioches'),
-        iconSlot('trash', c.discards, 'Défausses'),
+        iconSlot('tetro', c.pieces, 'Pièces', 'tuiles en main'),
+        iconSlot('draw', c.draws, 'Pioches', 'tuiles/étage'),
+        iconSlot('trash', c.discards, 'Défausses', 'cartes/combat'),
         h('button',{onClick:(evt)=>{ evt.stopPropagation(); this.setState({tutoStage:'select'}); },
           style:{width:24,height:24,borderRadius:'50%',border:'1px solid #c8bfae',background:'#e8e0d0',cursor:'pointer',
             fontSize:12,fontWeight:700,color:'#8a7f70',alignSelf:'flex-end',marginBottom:2}}, '?')),

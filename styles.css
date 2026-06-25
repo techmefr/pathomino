@@ -37,6 +37,7 @@
 .pm-card__icon-slot{ display:flex; flex-direction:column; align-items:center; gap:3px; }
 .pm-card__icon-val{ font-size:17px; font-weight:800; color:#26201b; line-height:1; }
 .pm-card__icon-lbl{ font-size:8px; letter-spacing:.08em; color:#8a7f70; text-transform:uppercase; }
+.pm-card__icon-sub{ font-size:8px; color:#b0a898; margin-top:1px; line-height:1.2; text-align:center; }
 
 .pm-stats{ display:flex; align-items:stretch; border-radius:10px; overflow:hidden; margin:0 14px;
   background:linear-gradient(135deg,
