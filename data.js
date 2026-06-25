@@ -30,7 +30,7 @@ window.PM = {
     mini:['D2','I3','L3','O','T']
   },
   CHARS: {
-    chevalier:{name:'Chevalier',icon:'sword',vie:120,force:15,defense:10,magie:4,vitesse:6,pieces:5,draws:3,discards:3,cards:8,shapes:'tetro',tag:'DÉPART',desc:'Solide, prévisible, tanky. Tétrominos classiques.',color:'#c98a3a'},
+    chevalier:{name:'Chevalier',icon:'sword',vie:120,force:15,defense:10,magie:4,vitesse:6,pieces:5,draws:3,discards:3,cards:8,shapes:'tetro',tag:'DÉPART',desc:'Solide, prévisible, tanky. Tétrominos classiques — seulement 10 pièces de déplacement de base, aucun pouvoir spécial.',color:'#c98a3a'},
     mage:{name:'Mage',icon:'wand',vie:78,force:5,defense:5,magie:17,vitesse:9,pieces:6,draws:3,discards:3,cards:9,shapes:'tetro',power:'portal',tag:'1 BOSS',desc:'Fragile mais dévastateur. Grande main de cartes. Un portail par étage.',color:'#6f9bca'},
     voleur:{name:'Voleur',icon:'dagger',vie:90,force:11,defense:7,magie:9,vitesse:15,pieces:7,draws:4,discards:4,cards:8,shapes:'pento',tag:'3 BOSS',desc:'Agile, esquive souvent. Pentominos (5 cases), beaucoup de pioches et défausses.',color:'#86b46a'},
     paladin:{name:'Paladin',icon:'sword',vie:110,force:13,defense:11,magie:4,vitesse:6,pieces:5,draws:3,discards:2,cards:8,shapes:'tetro',heal:15,tag:'5 BOSS',desc:'Comme le Chevalier, mais regagne 15 PV à chaque combat gagné. Peu de défausses.',color:'#d9c27a'},

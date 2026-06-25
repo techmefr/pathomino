@@ -705,6 +705,10 @@ class Pathomino extends React.Component {
     const statCol=(val,label)=>h('div',{className:'pm-stats__col'},
       h('div',{className:'pm-stats__val'}, val), h('div',{className:'pm-stats__lbl'}, label));
     const divider=()=>h('div',{className:'pm-stats__div'});
+    const iconSlot=(icon,val,label)=>h('div',{className:'pm-card__icon-slot'},
+      this.icon(icon,20,isLocked?'#8d8377':'#26201b'),
+      h('div',{className:'pm-card__icon-val'}, isLocked?'?':val),
+      h('div',{className:'pm-card__icon-lbl'}, label));
 
     // carte « trading card » : tout le style statique est en CSS (.pm-card),
     // seule la couleur du perso reste inline via la variable --c.
@@ -722,8 +726,13 @@ class Pathomino extends React.Component {
         h('div',{className:'pm-card__tag'}, isLocked?'? BOSS':c.tag),
         h('div',{className:'pm-card__name'}, isLocked?'???':c.name),
         h('div',{className:'pm-card__desc'}, lockMsg||c.desc)),
-      h('div',{className:'pm-stats'+(isLocked?' pm-stats--locked':'')},
-        statCol(isLocked?'?':c.vie,'PV'), divider(), statCol(power,'PUISSANCE'), divider(), statCol(isLocked?'?':c.vitesse,'VITESSE')),
+      h('div',{className:'pm-card__icons'},
+        iconSlot('deck', c.pieces, 'Pièces'),
+        iconSlot('deck', c.draws, 'Pioches'),
+        iconSlot('discard', c.discards, 'Défausses'),
+        h('button',{onClick:(evt)=>{ evt.stopPropagation(); this.setState({showTuto:true}); },
+          style:{width:24,height:24,borderRadius:'50%',border:'1px solid #c8bfae',background:'#e8e0d0',cursor:'pointer',
+            fontSize:12,fontWeight:700,color:'#8a7f70',alignSelf:'flex-end',marginBottom:2}}, '?')),
       isLocked ? null : h('div',{className:'pm-card__cta'},
         this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true})));
 
@@ -738,7 +747,7 @@ class Pathomino extends React.Component {
       onMouseEnter:evt=>evt.currentTarget.style.borderColor=clr.gold,
       onMouseLeave:evt=>evt.currentTarget.style.borderColor=clr.line2}, label);
 
-    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',padding:port?'12px 8px':24,maxWidth:port?360:820}},
+    return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',paddingTop:port?'10rem':'3rem',paddingLeft:port?8:24,paddingRight:port?8:24,paddingBottom:port?12:24,maxWidth:port?360:820}},
       h('div',{style:{fontSize:11,letterSpacing:'.5em',color:clr.gold,marginBottom:18}}, 'CHOISIR TON HÉROS'),
       this.state.best>0 ? h('p',{style:{color:clr.gold,fontSize:12,margin:'0 auto 16px',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
       h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',gap:port?8:18}},
