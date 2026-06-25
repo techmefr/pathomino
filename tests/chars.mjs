@@ -140,6 +140,24 @@ const after = await inst(`app=>({portal:!!app.state.shop.portalReset, trim:!!app
 check('Offres recharge/élaguer présentes avant achat', before.portal && before.trim, JSON.stringify(before));
 check('Offres recharge/élaguer conservées après achat', after.portal && after.trim, JSON.stringify(after));
 
+// ---- 8. Jokers (inspirés Balatro) : chaque mod s'exécute sans erreur ----
+await inst(`app=>{ app.startRun('chevalier'); }`); await wait(200);
+const jokerTest = await inst(`app=>{
+  app.state.char='chevalier'; app.state.gold=50; app.state.discardsLeft=0; app.state.enemy=null; app.state.weapon=null; app.state.cheatArmed=false;
+  const sel=[{rank:5,suit:'♦',uid:'a'},{rank:5,suit:'♥',uid:'b'},{rank:8,suit:'♦',uid:'c'}];
+  app.state.jokers=[]; const baseDmg=app.detect(sel).dmg;
+  const bad=[];
+  for(const key of Object.keys(app.JOKERS)){ app.state.jokers=[key];
+    const combo=app.detect(sel);
+    if(!combo||!Number.isFinite(combo.dmg)||combo.dmg<=0) bad.push(key); }
+  app.state.jokers=['joker']; const withJoker=app.detect(sel).dmg;
+  app.state.jokers=[];
+  return {count:Object.keys(app.JOKERS).length, bad, baseDmg, withJoker};
+}`);
+check('Tous les jokers s\'exécutent sans erreur ('+jokerTest.count+')', jokerTest.bad.length===0, 'KO: '+jokerTest.bad.join(','));
+check('Au moins 18 jokers', jokerTest.count>=18, 'got '+jokerTest.count);
+check('Joker (+12 plat) augmente les dégâts', jokerTest.withJoker>jokerTest.baseDmg, jokerTest.withJoker+' vs '+jokerTest.baseDmg);
+
 console.log('\n=== TESTS PERSONNAGES ===');
 console.log(results.join('\n'));
 console.log(`\n${pass} réussis, ${fail} échoués · erreurs JS: ${errs.length}`);

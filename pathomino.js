@@ -53,6 +53,7 @@ class Pathomino extends React.Component {
   FLOOR_REFILL = 2;
   DRAWS_PER_FLOOR = 3;
   DISCARDS_PER_COMBAT = 3;
+  REROLL_CAT_COST = 3; // coût pour relancer une seule catégorie de la boutique
   MAX_SCALE = 2;
   SPRITES = {
     chevalier:{ pal:{K:'#14100c',M:'#8b919b',L:'#d2d8e0',D:'#5a5f68',V:'#2f333a',E:'#bfe9ff',A:'#e0a53b',C:'#f3c976'},
@@ -74,13 +75,33 @@ class Pathomino extends React.Component {
     {key:'roi',glyph:'\u265A',name:'Roi',hpMul:2.0,atkMul:1.6,vit:7,trait:'Ultime épreuve du donjon'}
   ];
   SUITS = ['♥','♦','♣','♠'];
+  // Jokers inspirés de Balatro. mod(mods, type, ctx) — ctx={type,cards,n,suitCounts,state}.
+  // mods.flat = dégâts plats (≈ chips), mods.dmgMult = multiplicateur (≈ mult).
   JOKERS = {
-    lame:{name:'Lame Affûtée',glyph:'⚔',color:'#c98a3a',price:6,desc:'+30% de dégâts sur toutes les mains',mod:(m,t)=>{m.dmgMult*=1.3;}},
-    trefle:{name:'Trèfle Vorace',glyph:'♣',color:'#86b46a',price:7,desc:'♣ active double des dégâts',mod:(m,t)=>{m.clubEnabled=true;}},
-    coeur:{name:'Cœur Sacré',glyph:'♥',color:'#cf5040',price:6,desc:'♥ active soin (50% des dégâts)',mod:(m,t)=>{m.healEnabled=true;}},
-    carreau:{name:'Diamant Fou',glyph:'♦',color:'#6f9bca',price:5,desc:'♦ active pioche de 2 cartes',mod:(m,t)=>{m.drawEnabled=true;}},
-    pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ active réduction -3 att ennemie',mod:(m,t)=>{m.spadeEnabled=true;}},
-    royal:{name:'Sang Royal',glyph:'♛',color:'#e0a53b',price:8,desc:'Suite, couleur, full+ : +60% dégâts',mod:(m,t)=>{ if(['suite','couleur','full','carre','quinteflush'].includes(t)) m.dmgMult*=1.6; }}
+    // — dégâts bruts / multiplicateurs —
+    joker:{name:'Joker',glyph:'🃏',color:'#ece4d6',price:4,desc:'+12 dégâts sur toutes les mains',mod:(m)=>{ m.flat+=12; }},
+    lame:{name:'Lame Affûtée',glyph:'⚔',color:'#c98a3a',price:6,desc:'+30% de dégâts',mod:(m)=>{ m.dmgMult*=1.3; }},
+    royal:{name:'Sang Royal',glyph:'♛',color:'#e0a53b',price:8,desc:'Suite, couleur, full+ : +60% dégâts',mod:(m,t)=>{ if(['suite','couleur','full','carre','quinteflush'].includes(t)) m.dmgMult*=1.6; }},
+    brute:{name:'Brute',glyph:'✊',color:'#cf5040',price:6,desc:'Paire, brelan, carré… : +80% dégâts',mod:(m,t)=>{ if(['paire','deuxpaires','brelan','full','carre'].includes(t)) m.dmgMult*=1.8; }},
+    abstrait:{name:'Joker Abstrait',glyph:'⬡',color:'#b9a7d6',price:8,desc:'+20% de dégâts par joker possédé',mod:(m,t,c)=>{ m.dmgMult*=(1+0.2*(c.state.jokers||[]).length); }},
+    // — bonus conditionnels —
+    demi:{name:'Demi-Joker',glyph:'½',color:'#86b46a',price:5,desc:'+25 dégâts si 3 cartes ou moins jouées',mod:(m,t,c)=>{ if(c.n<=3) m.flat+=25; }},
+    sommet:{name:'Sommet Mystique',glyph:'⛰',color:'#6f9bca',price:5,desc:'+60% de dégâts s\'il ne reste plus de défausse',mod:(m,t,c)=>{ if((c.state.discardsLeft||0)<=0) m.dmgMult*=1.6; }},
+    collectionneur:{name:'Collectionneur',glyph:'❖',color:'#f3c976',price:6,desc:'+5 dégâts par carte jouée',mod:(m,t,c)=>{ m.flat+=5*c.n; }},
+    banquier:{name:'Banquier',glyph:'💰',color:'#e0a53b',price:6,desc:'+1 dégât par 5 or possédé',mod:(m,t,c)=>{ m.flat+=Math.floor((c.state.gold||0)/5); }},
+    fibonacci:{name:'Fibonacci',glyph:'🌀',color:'#6f9bca',price:7,desc:'+8 dégâts par 2, 3, 5, 8 ou As joué',mod:(m,t,c)=>{ m.flat+=8*c.cards.filter(x=>[2,3,5,8,14].includes(x.rank)).length; }},
+    figures:{name:'Face Effrayante',glyph:'👑',color:'#c98a3a',price:6,desc:'+10 dégâts par figure (J, Q, K) jouée',mod:(m,t,c)=>{ m.flat+=10*c.cards.filter(x=>x.rank>=11&&x.rank<=13).length; }},
+    pile:{name:'Pile Paire',glyph:'⚖',color:'#86b46a',price:5,desc:'+6 dégâts par carte de rang pair',mod:(m,t,c)=>{ m.flat+=6*c.cards.filter(x=>x.rank%2===0).length; }},
+    // — quatuor par couleur (à la Balatro) —
+    avare:{name:'Avare',glyph:'♦',color:'#6f9bca',price:5,desc:'+6 dégâts par ♦ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♦']||0); }},
+    lubrique:{name:'Lubrique',glyph:'♥',color:'#cf5040',price:5,desc:'+6 dégâts par ♥ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♥']||0); }},
+    glouton:{name:'Glouton',glyph:'♣',color:'#86b46a',price:5,desc:'+6 dégâts par ♣ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♣']||0); }},
+    furieux:{name:'Furieux',glyph:'♠',color:'#b9a7d6',price:5,desc:'+6 dégâts par ♠ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♠']||0); }},
+    // — effets de couleur (activent les pouvoirs de suit) —
+    trefle:{name:'Trèfle Vorace',glyph:'♣',color:'#86b46a',price:7,desc:'♣ double les dégâts de la main',mod:(m)=>{ m.clubEnabled=true; }},
+    coeur:{name:'Cœur Sacré',glyph:'♥',color:'#cf5040',price:6,desc:'♥ soigne (50% des dégâts)',mod:(m)=>{ m.healEnabled=true; }},
+    carreau:{name:'Diamant Fou',glyph:'♦',color:'#6f9bca',price:5,desc:'♦ pioche 2 cartes',mod:(m)=>{ m.drawEnabled=true; }},
+    pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ réduit l\'attaque ennemie de 3',mod:(m)=>{ m.spadeEnabled=true; }}
   };
   WEAPONS = {
     epee: {name:'\u00c9p\u00e9e',   glyph:'\u2694', price:10, desc:'+8 d\u00e9g\u00e2ts plats',            mod:()=>({dmgFlat:8})},
@@ -484,9 +505,13 @@ class Pathomino extends React.Component {
     const ch=this.CHARS[this.state.char];
     const stat = this.state.char==='mage'? ch.magie : this.state.char==='voleur'? (ch.force+ch.magie)/2 : ch.force;
     dmg = Math.round(dmg*(1+stat/55));
-    const mods={dmgMult:1, clubEnabled:false, clubX:2, healEnabled:false, healFactor:0.5, drawEnabled:false, drawBonus:0, spadeEnabled:false, spadeBonus:0};
-    (this.state.jokers||[]).forEach(key=>{ const joker=this.JOKERS[key]; if(joker&&joker.mod) joker.mod(mods,type); });
-    dmg = Math.round(dmg*mods.dmgMult);
+    // contexte passé aux jokers : cartes jouées, comptes par couleur, état du run
+    const playedCards=sel.filter(c=>!c.joker);
+    const suitCounts={}; playedCards.forEach(c=>{ suitCounts[c.suit]=(suitCounts[c.suit]||0)+1; });
+    const ctx={type, cards:playedCards, n:playedCards.length, suitCounts, state:this.state};
+    const mods={dmgMult:1, flat:0, clubEnabled:false, clubX:2, healEnabled:false, healFactor:0.5, drawEnabled:false, drawBonus:0, spadeEnabled:false, spadeBonus:0};
+    (this.state.jokers||[]).forEach(key=>{ const joker=this.JOKERS[key]; if(joker&&joker.mod) joker.mod(mods,type,ctx); });
+    dmg = Math.round((dmg + mods.flat) * mods.dmgMult);
     const wep=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
     if(wep){ const wm=wep.mod();
       if(wm.dmgFlat) dmg+=wm.dmgFlat;
@@ -592,22 +617,29 @@ class Pathomino extends React.Component {
     // newUnlock:null par défaut pour ne pas garder la bannière de déblocage sur les étages suivants
     this.setState({newUnlock:null, ...st, screen:'shop', floor:this.state.floor+1, shop});
   }
-  genShop(){
-    const owned=this.state.jokers||[];
-    const jokerKeys=Object.keys(this.JOKERS).filter(key=>!owned.includes(key));
+  // génère les offres d'UNE catégorie (réutilisé par genShop et rerollCategory)
+  genCategory(cat){
     const pick=(arr,count)=>{ const pool=[...arr],picked=[]; while(picked.length<count&&pool.length) picked.push(pool.splice(this.rnd(0,pool.length-1),1)[0]); return picked; };
-    const jokers=pick(jokerKeys,Math.min(2,jokerKeys.length)).map(key=>({key,price:this.JOKERS[key].price,sold:false}));
-    const shapeSet=this.shapeKeys();
-    const pieces=Array.from({length:3},()=>({shape:shapeSet[this.rnd(0,shapeSet.length-1)],rot:this.rnd(0,3),price:this.rnd(8,12),sold:false}));
-    const cards=Array.from({length:3},()=>({rank:this.rnd(9,14),suit:this.SUITS[this.rnd(0,3)],price:this.rnd(10,16),sold:false}));
-    const weaponKeys=Object.keys(this.WEAPONS).filter(key=>key!==this.state.weapon);
-    const weapons=pick(weaponKeys,Math.min(2,weaponKeys.length)).map(key=>({key,price:this.WEAPONS[key].price,sold:false}));
+    if(cat==='jokers'){ const owned=this.state.jokers||[]; const keys=Object.keys(this.JOKERS).filter(key=>!owned.includes(key));
+      return pick(keys,Math.min(2,keys.length)).map(key=>({key,price:this.JOKERS[key].price,sold:false})); }
+    if(cat==='pieces'){ const set=this.shapeKeys();
+      return Array.from({length:3},()=>({shape:set[this.rnd(0,set.length-1)],rot:this.rnd(0,3),price:this.rnd(8,12),sold:false})); }
+    if(cat==='cards'){ return Array.from({length:3},()=>({rank:this.rnd(9,14),suit:this.SUITS[this.rnd(0,3)],price:this.rnd(10,16),sold:false})); }
+    if(cat==='weapons'){ const keys=Object.keys(this.WEAPONS).filter(key=>key!==this.state.weapon);
+      return pick(keys,Math.min(2,keys.length)).map(key=>({key,price:this.WEAPONS[key].price,sold:false})); }
+    return [];
+  }
+  genShop(){
     const trimCard = this.state.deck.length>10 ? {type:'trimCard',price:8,sold:false} : null;
     const trimPiece = this.state.hand.length>3 ? {type:'trimPiece',price:6,sold:false} : null;
     const portalReset=this.state.char==='mage'&&this.state.portalUsed?{type:'portalReset',price:16,sold:false}:null;
     const cheatReset=this.state.char==='tricheur'&&this.state.cheatUsed?{type:'cheatReset',price:16,sold:false}:null;
-    return {jokers,pieces,cards,weapons,trimCard,trimPiece,portalReset,cheatReset};
+    return {jokers:this.genCategory('jokers'), pieces:this.genCategory('pieces'), cards:this.genCategory('cards'),
+      weapons:this.genCategory('weapons'), trimCard, trimPiece, portalReset, cheatReset};
   }
+  rerollCategory(cat){ const cost=this.REROLL_CAT_COST; if(this.state.gold<cost||!this.state.shop) return;
+    const shop={...this.state.shop}; shop[cat]=this.genCategory(cat);
+    this.sfx('buy'); this.setState({gold:this.state.gold-cost, shop}); }
   buyShop(cat,i){ const snap=this.state; if(!snap.shop) return;
     if(cat==='portalReset'){
       const offer=snap.shop[cat]; if(!offer||offer.sold||snap.gold<offer.price) return;
@@ -1148,10 +1180,17 @@ class Pathomino extends React.Component {
       h('div',{style:{fontSize:32,color:j.color,lineHeight:1}}, j.glyph),
       h('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'.12em',color:clr.mut,marginTop:8}}, 'JOKER'));
     const pieceCard=(shapeKey,rot)=>h('div',{style:{width:78,height:92,borderRadius:8,background:clr.p2,border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,rot||0,14,clr.gold));
-    const section=(title,sub,offers)=>h('div',{style:{marginBottom:14}},
+    const rerollCost=this.REROLL_CAT_COST;
+    const section=(title,sub,offers,cat)=>h('div',{style:{marginBottom:14}},
       h('div',{style:{display:'flex',alignItems:'baseline',gap:8,marginBottom:7}},
         h('span',{style:{fontSize:11,letterSpacing:'.16em',color:clr.gold,fontWeight:700}}, title),
-        h('span',{style:{fontSize:11,color:clr.mut}}, sub)),
+        h('span',{style:{fontSize:11,color:clr.mut,flex:1}}, sub),
+        cat? h('button',{onClick:()=>{ if(gold>=rerollCost) this.rerollCategory(cat); },
+          disabled:gold<rerollCost, title:'Relancer cette catégorie',
+          style:{fontFamily:'Space Grotesk',fontSize:11,fontWeight:600,padding:'3px 9px',borderRadius:4,
+            border:'1px solid '+(gold>=rerollCost?clr.line2:clr.line),background:clr.p2,
+            color:gold>=rerollCost?clr.gold2:clr.mut,cursor:gold>=rerollCost?'pointer':'not-allowed',
+            opacity:gold>=rerollCost?1:.5,whiteSpace:'nowrap'}}, '↻ '+rerollCost):null),
       h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,padding:'12px 14px',minHeight:96}}, offers.length?offers:h('span',{style:{fontSize:12,color:clr.mut,alignSelf:'center'}}, '\u2014 \u00e9puis\u00e9')));
 
     const weaponCard=(w)=>h('div',{style:{width:78,height:92,borderRadius:8,background:'linear-gradient(165deg,#241a10,#140e08)',border:'1.5px solid '+clr.gold2,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4}},
@@ -1199,10 +1238,10 @@ class Pathomino extends React.Component {
           h('div',{style:{flex:port?'1':'none',minWidth:port?120:'auto'}}, this.btn('Reroll \u00b7 5 or', ()=>this.rerollShop(), {wide:true,small:true,disabled:gold<5})),
           h('div',{style:{fontSize:11,color:clr.mut,lineHeight:1.5,marginTop:port?0:6,flexBasis:port?'100%':'auto'}}, 'L\u2019or ne se conserve pas entre les runs. Les jokers sont passifs : ils restent actifs en combat.')),
         h('div',{style:{flex:1}},
-          section('JOKERS', 'passifs \u2014 amplifient tes pouvoirs', jokerOffers),
-          section('PI\u00c8CES', ({tetro:'t\u00e9trominos (4 cases)',pento:'pentominos (5 cases)',mini:'petites pi\u00e8ces'}[(this.CHARS[this.state.char]||{}).shapes||'tetro'])+' pour ta main', pieceOffers),
-          section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers),
-          section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers),
+          section('JOKERS', 'passifs \u2014 amplifient tes pouvoirs', jokerOffers, 'jokers'),
+          section('PI\u00c8CES', ({tetro:'t\u00e9trominos (4 cases)',pento:'pentominos (5 cases)',mini:'petites pi\u00e8ces'}[(this.CHARS[this.state.char]||{}).shapes||'tetro'])+' pour ta main', pieceOffers, 'pieces'),
+          section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers, 'cards'),
+          section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers, 'weapons'),
           (()=>{
             const portalResetOffer=shop.portalReset?offer(shop.portalReset.price,shop.portalReset.sold,gold>=shop.portalReset.price,()=>this.buyShop('portalReset'),
               h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+clr.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:clr.blue}},'\u29bf'),
