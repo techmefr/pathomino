@@ -750,7 +750,7 @@ class Pathomino extends React.Component {
     return h('div',{style:{animation:'pmFade .5s ease',textAlign:'center',paddingTop:port?'10rem':'3rem',paddingLeft:port?8:24,paddingRight:port?8:24,paddingBottom:port?12:24,maxWidth:port?360:820}},
       h('div',{style:{fontSize:11,letterSpacing:'.5em',color:clr.gold,marginBottom:18}}, 'CHOISIR TON HÉROS'),
       this.state.best>0 ? h('p',{style:{color:clr.gold,fontSize:12,margin:'0 auto 16px',letterSpacing:'.06em'}}, 'Meilleur score : '+this.state.best+' boss vaincus') : null,
-      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',gap:port?8:18}},
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',gap:port?8:18,marginTop:'10rem'}},
         arrow(-1,'←'), card, arrow(1,'→')),
       dots,
       h('div',{style:{fontSize:11,color:clr.mut,marginTop:10}}, (ci+1)+' / '+count)
