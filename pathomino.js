@@ -175,7 +175,6 @@ class Pathomino extends React.Component {
     this._resize();
     this._key = (e)=>{
       if(this.state.screen!=='plan' || this.state.executing) return;
-      if(e.key==='r'||e.key==='R'){ this.setState(s=>({rot:(s.rot+1)%4})); }
       if(e.key==='Escape'){ this.setState({selPiece:null,ghost:null,dragging:false}); }
     };
     this._move = (e)=>{ if(this.state.dragging) this.setState({dragXY:{x:e.clientX,y:e.clientY}}); };
@@ -215,23 +214,22 @@ class Pathomino extends React.Component {
   startDrag(i,e){ if(e&&e.preventDefault)e.preventDefault();
     const pt = e&&e.touches&&e.touches[0] ? e.touches[0] : e;
     const x = pt&&pt.clientX!=null?pt.clientX:0, y = pt&&pt.clientY!=null?pt.clientY:0;
-    this.setState(s=>({selPiece:i, dragging:true, ghost:null, rot:(s.selPiece===i?s.rot:0), dragXY:{x,y}})); }
+    this.setState(s=>({selPiece:i, dragging:true, ghost:null, dragXY:{x,y}})); }
   clampAnchor(r,c,shape){ const n=this.state.grid.n;
     const maxR=Math.max(...shape.map(s=>s[0])), maxC=Math.max(...shape.map(s=>s[1]));
     return [Math.max(0,Math.min(r,n-1-maxR)), Math.max(0,Math.min(c,n-1-maxC))]; }
   placeAt(r,c){ if(this.state.selPiece===null||this.state.dragging) return;
     const piece=this.state.hand[this.state.selPiece]; if(!piece) return;
-    const shape=this.rotated(piece.key, this.state.rot);
+    const shape=this.rotated(piece.key, piece.rot||0);
     const [ar,ac]=this.clampAnchor(r,c,shape);
     const cells=shape.map(([dr,dc])=>[ar+dr,ac+dc]);
     if(!this.ghostValid(cells)){ this.sfx('bad'); this.setState({ghost:[ar,ac]}); return; }
-    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, rot:piece.rot||0, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
-    this.setState({placed, hand, selPiece:null, ghost:null, rot:0}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
+    this.setState({placed, hand, selPiece:null, ghost:null}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells); }
   markPlaced(cells){ const keys=cells.map(c=>c.join(',')); this.setState({justPlaced:keys});
     clearTimeout(this._jpT); this._jpT=setTimeout(()=>this.setState({justPlaced:[]}),360); }
-  rotate(){ this.sfx('rotate'); this.setState(s=>({rot:(s.rot+1)%4})); }
   miniPiece(key,rot,u,color){ const h=React.createElement; const shape=this.rotated(key,rot);
     const rows=Math.max(...shape.map(c=>c[0]))+1, cols=Math.max(...shape.map(c=>c[1]))+1;
     const sset=new Set(shape.map(c=>c.join(','))); const cs=[];
@@ -320,7 +318,8 @@ class Pathomino extends React.Component {
   drawPiece(keys){
     const pool=[]; // keys explicites = perso pas encore committé (ex. main de départ dans startRun)
     for(const k of (keys||this.shapeKeys())){ const w=this.PIECE_WEIGHTS[k]||1; for(let i=0;i<w;i++) pool.push(k); }
-    return {uid:Math.random().toString(36).slice(2), key:pool[this.rnd(0,pool.length-1)]};
+    // orientation figée à la pioche : chaque (forme + sens) est une pièce distincte
+    return {uid:Math.random().toString(36).slice(2), key:pool[this.rnd(0,pool.length-1)], rot:this.rnd(0,3)};
   }
   eq(a,b){ return a[0]===b[0]&&a[1]===b[1]; }
 
@@ -328,7 +327,7 @@ class Pathomino extends React.Component {
   ghostCells(){
     if(this.state.selPiece===null || !this.state.ghost) return null;
     const piece = this.state.hand[this.state.selPiece]; if(!piece) return null;
-    const shape = this.rotated(piece.key, this.state.rot);
+    const shape = this.rotated(piece.key, piece.rot||0);
     const [ar,ac]=this.clampAnchor(this.state.ghost[0], this.state.ghost[1], shape);
     return shape.map(([r,c])=>[ar+r, ac+c]);
   }
@@ -341,20 +340,20 @@ class Pathomino extends React.Component {
   placePiece(){
     const cells=this.ghostCells(); if(!cells||!this.ghostValid(cells)) return;
     const piece=this.state.hand[this.state.selPiece];
-    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, cells}];
+    const placed=[...this.state.placed, {uid:piece.uid, key:piece.key, rot:piece.rot||0, cells}];
     const hand=this.state.hand.filter((_,i)=>i!==this.state.selPiece);
-    this.setState({placed, hand, selPiece:null, ghost:null, rot:0, dragging:false}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
+    this.setState({placed, hand, selPiece:null, ghost:null, dragging:false}, ()=>{ if(this.pathOk().ok) this.sfx('ready'); });
     this.sfx('place'); this.markPlaced(cells);
   }
   undo(){ const placed=[...this.state.placed]; const last=placed.pop(); if(!last)return;
-    this.setState({placed, hand:[...this.state.hand, {uid:last.uid,key:last.key}]}); }
+    this.setState({placed, hand:[...this.state.hand, {uid:last.uid,key:last.key,rot:last.rot||0}]}); }
   retrievePiece(r,c){ if(this.state.executing) return;
     const k=r+','+c;
     const idx=this.state.placed.findIndex(pl=>pl.cells.some(c=>c.join(',')===k));
     if(idx===-1) return;
     const pl=this.state.placed[idx];
     const placed=this.state.placed.filter((_,i)=>i!==idx);
-    this.setState({placed, hand:[...this.state.hand, {uid:pl.uid,key:pl.key}]});
+    this.setState({placed, hand:[...this.state.hand, {uid:pl.uid,key:pl.key,rot:pl.rot||0}]});
     this.sfx('select'); }
   pickPiece(){ if(this.state.hand.length>=this.HAND_MAX || this.state.drawsLeft<=0)return; this.sfx('place'); this.setState(s=>({hand:[...s.hand, this.drawPiece()], drawsLeft:s.drawsLeft-1})); }
 
@@ -598,7 +597,7 @@ class Pathomino extends React.Component {
     const pick=(arr,n)=>{ const a=[...arr],o=[]; while(o.length<n&&a.length) o.push(a.splice(this.rnd(0,a.length-1),1)[0]); return o; };
     const jokers=pick(jkKeys,Math.min(2,jkKeys.length)).map(k=>({key:k,price:this.JOKERS[k].price,sold:false}));
     const sk=this.shapeKeys();
-    const pieces=Array.from({length:3},()=>({shape:sk[this.rnd(0,sk.length-1)],price:this.rnd(8,12),sold:false}));
+    const pieces=Array.from({length:3},()=>({shape:sk[this.rnd(0,sk.length-1)],rot:this.rnd(0,3),price:this.rnd(8,12),sold:false}));
     const cards=Array.from({length:3},()=>({rank:this.rnd(9,14),suit:this.SUITS[this.rnd(0,3)],price:this.rnd(10,16),sold:false}));
     const wepKeys=Object.keys(this.WEAPONS).filter(k=>k!==this.state.weapon);
     const weapons=pick(wepKeys,Math.min(2,wepKeys.length)).map(k=>({key:k,price:this.WEAPONS[k].price,sold:false}));
@@ -632,7 +631,7 @@ class Pathomino extends React.Component {
     }
     const o=snap.shop[cat][i]; if(!o||o.sold||snap.gold<o.price) return;
     if(cat==='jokers'){ if(snap.jokers.length>=5) return; this.setState({jokers:[...snap.jokers,o.key]}); }
-    else if(cat==='pieces'){ if(snap.hand.length>=this.HAND_MAX) return; this.setState({hand:[...snap.hand,{uid:Math.random().toString(36).slice(2),key:o.shape}]}); }
+    else if(cat==='pieces'){ if(snap.hand.length>=this.HAND_MAX) return; this.setState({hand:[...snap.hand,{uid:Math.random().toString(36).slice(2),key:o.shape,rot:o.rot||0}]}); }
     else if(cat==='cards'){ this.setState({deck:[...snap.deck,{uid:Math.random().toString(36).slice(2),rank:o.rank,suit:o.suit}]}); }
     else if(cat==='weapons'){ this.setState({weapon:o.key}); }
     const shop={jokers:[...snap.shop.jokers],pieces:[...snap.shop.pieces],cards:[...snap.shop.cards],weapons:[...snap.shop.weapons]};
@@ -887,22 +886,20 @@ class Pathomino extends React.Component {
         content));
     }
     const gridEl=h('div',{onMouseLeave:()=>{ if(!this.state.dragging) this.setState({ghost:null}); },
-      onContextMenu:(evt)=>{ evt.preventDefault(); if(this.state.selPiece!==null) this.rotate(); },
-      onWheel:(evt)=>{ if(this.state.selPiece!==null){ this.rotate(); } },
       style:{display:'grid',gridTemplateColumns:`repeat(${grid.n},${cell}px)`,gap:2,padding:14,touchAction:'none',
         background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,boxShadow:'inset 0 0 40px rgba(0,0,0,.6)'}}, cells);
 
-    const groups={}; this.state.hand.forEach((p,i)=>{ (groups[p.key]=groups[p.key]||{key:p.key,idx:[]}).idx.push(i); });
-    const selKey = this.state.selPiece!==null && this.state.hand[this.state.selPiece] ? this.state.hand[this.state.selPiece].key : null;
+    // chaque (forme + sens) est une pièce distincte : on regroupe par key@rot
+    const groups={}; this.state.hand.forEach((p,i)=>{ const gk=p.key+'@'+(p.rot||0); (groups[gk]=groups[gk]||{key:p.key,rot:p.rot||0,idx:[]}).idx.push(i); });
     const tray = Object.values(groups).map(gr=>{
-      const sel = selKey===gr.key;
+      const sel = this.state.selPiece!==null && gr.idx.includes(this.state.selPiece);
       const i0 = sel ? this.state.selPiece : gr.idx[0];
-      const shape=this.rotated(gr.key, sel?this.state.rot:0);
+      const shape=this.rotated(gr.key, gr.rot);
       const rows=Math.max(...shape.map(c=>c[0]))+1, cols=Math.max(...shape.map(c=>c[1]))+1;
       const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
         background:sset.has(r+','+c)?(sel?clr.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key, onMouseDown:(evt)=>this.startDrag(i0,evt), onTouchStart:(evt)=>this.startDrag(i0,evt), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid], rot:0}); },
+      return h('div',{key:gr.key+'@'+gr.rot, onMouseDown:(evt)=>this.startDrag(i0,evt), onTouchStart:(evt)=>this.startDrag(i0,evt), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid]}); },
         title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
         style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
           background:sel?'rgba(224,165,59,.14)':clr.p1,border:'1px solid '+(sel?clr.gold:clr.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
@@ -945,9 +942,8 @@ class Pathomino extends React.Component {
             h('span',null,'TA MAIN'),
             h('span',{style:{color:clr.gold2,letterSpacing:'.04em'}}, this.state.hand.length+'/'+this.HAND_MAX+' pièces')),
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Bouton Pivoter, molette, clic droit ou R.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
+          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Chaque pièce a son orientation — prends-en une, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
-            this.state.selPiece!==null? this.btn('Pivoter ⟳', ()=>this.rotate(), {small:true}) : null,
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
             this.state.char==='mage'?this.btn(
               this.state.selectingPortal?'Annuler portail':(this.state.portalUsed?'\u29bf Portail (\u00e9t.'+this.state.portalRecharge+')':'\u29bf Portail'),
@@ -1150,7 +1146,7 @@ class Pathomino extends React.Component {
     const jokerCard=(j)=>h('div',{style:{width:78,height:104,borderRadius:8,background:'linear-gradient(165deg,#2a2438,#171320)',border:'2px solid '+j.color,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',boxShadow:'0 5px 12px rgba(0,0,0,.55)'}},
       h('div',{style:{fontSize:32,color:j.color,lineHeight:1}}, j.glyph),
       h('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'.12em',color:clr.mut,marginTop:8}}, 'JOKER'));
-    const pieceCard=(shapeKey)=>h('div',{style:{width:78,height:92,borderRadius:8,background:clr.p2,border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,0,14,clr.gold));
+    const pieceCard=(shapeKey,rot)=>h('div',{style:{width:78,height:92,borderRadius:8,background:clr.p2,border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,rot||0,14,clr.gold));
     const section=(title,sub,offers)=>h('div',{style:{marginBottom:14}},
       h('div',{style:{display:'flex',alignItems:'baseline',gap:8,marginBottom:7}},
         h('span',{style:{fontSize:11,letterSpacing:'.16em',color:clr.gold,fontWeight:700}}, title),
@@ -1172,7 +1168,7 @@ class Pathomino extends React.Component {
           h('div',{style:{fontSize:11,fontWeight:700,color:j.color}}, j.name),
           h('div',{style:{fontSize:10,color:clr.mut,lineHeight:1.3,marginTop:2}}, j.desc)), i); });
     const pieceOffers=shop.pieces.map((o,i)=>{ const afford=gold>=o.price && this.state.hand.length<this.HAND_MAX;
-      return offer(o.price,o.sold,afford,()=>this.buyShop('pieces',i), pieceCard(o.shape), 86, null, i+2); });
+      return offer(o.price,o.sold,afford,()=>this.buyShop('pieces',i), pieceCard(o.shape,o.rot), 86, null, i+2); });
     const cardOffers=shop.cards.map((o,i)=>{ const afford=gold>=o.price;
       return offer(o.price,o.sold,afford,()=>this.buyShop('cards',i), this.renderCard({rank:o.rank,suit:o.suit},false), 72, null, i+4); });
     const trimCardOffer=shop.trimCard ? offer(shop.trimCard.price,shop.trimCard.sold,gold>=shop.trimCard.price,()=>this.buyShop('trimCard'),
@@ -1250,7 +1246,7 @@ class Pathomino extends React.Component {
     const scale=port? this.fitScale(528,1040) : this.fitScale(1092,690);
     const u=Math.max(8, Math.round(cell*scale)-2);
     return h('div',{style:{position:'fixed',left:s.dragXY.x,top:s.dragXY.y,transform:'translate(-50%,-150%)',pointerEvents:'none',zIndex:400,opacity:.92,filter:'drop-shadow(0 8px 12px rgba(0,0,0,.6))'}},
-      this.miniPiece(piece.key, s.rot, u, this.C.gold2));
+      this.miniPiece(piece.key, piece.rot||0, u, this.C.gold2));
   }
   miniCells(cells,u,color,gap){ const h=React.createElement;
     const set=new Set(cells.map(c=>c.join(','))); const rows=Math.max(...cells.map(c=>c[0]))+1, cols=Math.max(...cells.map(c=>c[1]))+1; const out=[];

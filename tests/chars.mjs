@@ -104,6 +104,11 @@ await wait(220);
 const palHp = await inst(`app=>({php:app.state.php, pmax:app.state.pmax})`);
 check('Paladin: +15 PV après combat gagné', palHp.php === palHp.pmax - 35, 'php=' + palHp.php + ' attendu ' + (palHp.pmax - 35));
 
+// ---- 5b. Pièces pré-orientées (chaque forme+sens = pièce distincte) ----
+await inst(`app=>{ app.startRun('voleur'); }`); await wait(220);
+const orient = await inst(`app=>({allRot:app.state.hand.every(p=>Number.isInteger(p.rot)), variants:new Set(app.state.hand.map(p=>p.key+'@'+p.rot)).size})`);
+check('Pièces tirées : orientation figée (forme+sens)', orient.allRot === true);
+
 // ---- 6. Offres de recharge en boutique (pouvoir consommé) ----
 await inst(`app=>{ app.startRun('tricheur'); }`); await wait(180);
 await inst(`app=>{ app.setState({cheatUsed:true}); }`); await wait(130);
