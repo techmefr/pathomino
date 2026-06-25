@@ -196,7 +196,7 @@ class Pathomino extends React.Component {
     const taken = new Set([start.join(','),door.join(','),key.join(',')]);
     const floor=this.state.floor;
     const pawns=[];
-    const guardKey = floor===1 || this.rnd(0,9)<4;
+    const guardKey = floor > 1 && this.rnd(0,9)<4;
     if(guardKey) pawns.push([key[0],key[1]]);
     const pc = floor===1 ? 0 : Math.min(2+Math.floor(floor/2), 5);
     let guard=0;
