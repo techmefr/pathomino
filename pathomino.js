@@ -921,8 +921,8 @@ class Pathomino extends React.Component {
       style:{position:'relative',width:64,height:64,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,
         cursor:noDraw?'not-allowed':'pointer',opacity:noDraw?.5:1,background:'#0e0b09',border:'1px dashed '+(noDraw?clr.line2:clr.gold),borderRadius:5}},
       this.icon('deck',18,noDraw?clr.mut:clr.gold),
-      h('div',{className:'pm-pixel',style:{fontSize:11,color:noDraw?clr.mut:clr.gold2,lineHeight:1}}, this.state.hand.length+'/'+this.HAND_MAX),
-      h('div',{style:{fontSize:8,letterSpacing:'.08em',color:clr.mut}}, this.state.hand.length>=this.HAND_MAX?'PLEIN':('PIOCHE '+this.state.drawsLeft)));
+      h('div',{className:'pm-pixel',style:{fontSize:10,color:noDraw?clr.mut:clr.gold2,lineHeight:1}}, this.state.hand.length>=this.HAND_MAX?'PLEIN':'PIOCHER'),
+      h('div',{style:{fontSize:9,letterSpacing:'.06em',color:clr.mut}}, this.state.drawsLeft+' restante'+(this.state.drawsLeft>1?'s':'')));
 
     return h('div',{style:{animation:'pmFade .4s ease',width:'100%',maxWidth:port?504:1060,padding:port?'10px 8px':'18px 26px'}},
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:port?12:18}},
@@ -941,10 +941,13 @@ class Pathomino extends React.Component {
           ),
         h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:clr.p1,border:'1px solid '+clr.line,borderRadius:8,padding:port?16:20}},
 
-          h('div',{style:{fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:10}}, 'TA MAIN'),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:10}},
+            h('span',null,'TA MAIN'),
+            h('span',{style:{color:clr.gold2,letterSpacing:'.04em'}}, this.state.hand.length+'/'+this.HAND_MAX+' pièces')),
           h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Molette / clic droit : pivoter.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
+          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser. Bouton Pivoter, molette, clic droit ou R.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Prends une pièce, vise la grille, clique.'),
           h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
+            this.state.selPiece!==null? this.btn('Pivoter ⟳', ()=>this.rotate(), {small:true}) : null,
             this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
             this.state.char==='mage'?this.btn(
               this.state.selectingPortal?'Annuler portail':(this.state.portalUsed?'\u29bf Portail (\u00e9t.'+this.state.portalRecharge+')':'\u29bf Portail'),
