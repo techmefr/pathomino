@@ -591,18 +591,9 @@ class Pathomino extends React.Component {
 
   icon(name,size,color){ const clr=this.C; return React.createElement('span',{style:{display:'inline-flex',width:size,height:size,color:color||clr.text},dangerouslySetInnerHTML:{__html:this.SVG[name]}}); }
 
-  btn(label,onClick,opt={}){ const clr=this.C; const {primary,danger,disabled,small,wide}=opt;
-    return React.createElement('button',{onClick:disabled?null:onClick,disabled,style:{
-      fontFamily:'Space Grotesk',fontWeight:600,fontSize:small?12:14,letterSpacing:'.04em',
-      padding:small?'8px 12px':'12px 18px',borderRadius:3,cursor:disabled?'not-allowed':'pointer',
-      border:'1px solid '+(primary?clr.gold:danger?clr.red:clr.line2),
-      background:disabled?'#1a1614':primary?'linear-gradient(180deg,#e9b24b,#c98a2f)':danger?'rgba(207,80,64,.12)':clr.p2,
-      color:disabled?clr.mut:primary?'#1a1207':danger?clr.red:clr.text,opacity:disabled?.5:1,
-      width:wide?'100%':'auto',transition:'transform .08s,filter .15s',textTransform:'uppercase',
-      boxShadow:primary&&!disabled?'0 3px 0 #8a5e1f':'none'
-    }, onMouseDown:evt=>{if(!disabled)evt.currentTarget.style.transform='translateY(2px)';},
-       onMouseUp:evt=>evt.currentTarget.style.transform='none',
-       onMouseLeave:evt=>evt.currentTarget.style.transform='none'}, label); }
+  btn(label,onClick,opt={}){ const {primary,danger,disabled,small,wide}=opt;
+    const cls='pm-btn'+(small?' pm-btn--small':'')+(wide?' pm-btn--wide':'')+(primary?' pm-btn--primary':'')+(danger?' pm-btn--danger':'');
+    return React.createElement('button',{className:cls, onClick:disabled?null:onClick, disabled}, label); }
 
   renderIntro(){
     const h=React.createElement;

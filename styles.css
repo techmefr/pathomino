@@ -1,6 +1,17 @@
 /* Styles statiques (hors JS). Le seul inline toléré = valeurs dynamiques via
    variables CSS (ex. --c = couleur du perso). color-mix gère les teintes alpha. */
 
+/* ---- Bouton générique (this.btn) ---- */
+.pm-btn{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:600; font-size:14px; letter-spacing:.04em;
+  padding:12px 18px; border-radius:3px; cursor:pointer; border:1px solid #4c443b; background:#241f1b;
+  color:#ece4d6; width:auto; text-transform:uppercase; transition:transform .08s, filter .15s; }
+.pm-btn--small{ font-size:12px; padding:8px 12px; }
+.pm-btn--wide{ width:100%; }
+.pm-btn--primary{ border-color:#e0a53b; background:linear-gradient(180deg,#e9b24b,#c98a2f); color:#1a1207; box-shadow:0 3px 0 #8a5e1f; }
+.pm-btn--danger{ border-color:#cf5040; background:rgba(207,80,64,.12); color:#cf5040; }
+.pm-btn:active:not(:disabled){ transform:translateY(2px); }
+.pm-btn:disabled{ background:#1a1614; color:#8d8377; opacity:.5; cursor:not-allowed; box-shadow:none; border-color:#4c443b; }
+
 /* ---- Carte de sélection de personnage (style trading card) ---- */
 .pm-card{ width:300px; background:#f4eddf; border-radius:16px; padding-bottom:14px;
   overflow:visible; box-shadow:0 18px 44px rgba(0,0,0,.5); animation:pmFade .3s ease; }
