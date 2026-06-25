@@ -589,7 +589,8 @@ class Pathomino extends React.Component {
       try{ localStorage.setItem('pm_best', String(Math.max(this.state.best,beaten))); }catch(_e){}
     }
     const shop=this.genShop();
-    this.setState({...st, screen:'shop', floor:this.state.floor+1, shop});
+    // newUnlock:null par défaut pour ne pas garder la bannière de déblocage sur les étages suivants
+    this.setState({newUnlock:null, ...st, screen:'shop', floor:this.state.floor+1, shop});
   }
   genShop(){
     const owned=this.state.jokers||[];
@@ -634,7 +635,7 @@ class Pathomino extends React.Component {
     else if(cat==='pieces'){ if(snap.hand.length>=this.HAND_MAX) return; this.setState({hand:[...snap.hand,{uid:Math.random().toString(36).slice(2),key:offer.shape,rot:offer.rot||0}]}); }
     else if(cat==='cards'){ this.setState({deck:[...snap.deck,{uid:Math.random().toString(36).slice(2),rank:offer.rank,suit:offer.suit}]}); }
     else if(cat==='weapons'){ this.setState({weapon:offer.key}); }
-    const shop={jokers:[...snap.shop.jokers],pieces:[...snap.shop.pieces],cards:[...snap.shop.cards],weapons:[...snap.shop.weapons]};
+    const shop={...snap.shop}; // garde élaguer / recharges (sinon ils disparaissent après un achat)
     shop[cat]=shop[cat].map((item,j)=>j===i?{...item,sold:true}:item);
     this.sfx('buy'); this.setState({gold:snap.gold-offer.price, shop});
   }

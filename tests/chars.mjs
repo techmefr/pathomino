@@ -119,6 +119,27 @@ await inst(`app=>{ app.setState({portalUsed:true}); }`); await wait(130);
 const shopM = await inst(`app=>{ const s=app.genShop(); return !!s.portalReset; }`);
 check('Mage: recharge de portail proposée en boutique', shopM === true);
 
+// ---- 7. Bugs corrigés (gardes de non-régression) ----
+// Bug : la bannière de déblocage ne doit pas persister sur les étages non-boss
+await inst(`app=>{ app.startRun('chevalier'); }`); await wait(250);
+await inst(`app=>{ app.setState({unlocked:[], bossesBeaten:0, newUnlock:null}); }`); await wait(150);
+await inst(`app=>{ app.state.grid.boss=true; app.floorComplete(); }`); await wait(200);
+const nuBoss = await inst(`app=>app.state.newUnlock`);
+await inst(`app=>{ app.state.grid.boss=false; app.floorComplete(); }`); await wait(200);
+const nuAfter = await inst(`app=>app.state.newUnlock`);
+check('Bannière déblocage affichée au boss', Array.isArray(nuBoss) && nuBoss.includes('mage'), JSON.stringify(nuBoss));
+check('Bannière déblocage effacée à l\'étage non-boss suivant', nuAfter === null, JSON.stringify(nuAfter));
+
+// Bug : élaguer / recharge ne doivent pas disparaître après un achat en boutique
+await inst(`app=>{ app.startRun('mage'); }`); await wait(200);
+await inst(`app=>{ app.setState({gold:99, portalUsed:true}); }`); await wait(140);
+await inst(`app=>{ app.floorComplete(); }`); await wait(200);
+const before = await inst(`app=>({portal:!!app.state.shop.portalReset, trim:!!app.state.shop.trimCard})`);
+await inst(`app=>{ app.buyShop('cards',0); }`); await wait(160);
+const after = await inst(`app=>({portal:!!app.state.shop.portalReset, trim:!!app.state.shop.trimCard})`);
+check('Offres recharge/élaguer présentes avant achat', before.portal && before.trim, JSON.stringify(before));
+check('Offres recharge/élaguer conservées après achat', after.portal && after.trim, JSON.stringify(after));
+
 console.log('\n=== TESTS PERSONNAGES ===');
 console.log(results.join('\n'));
 console.log(`\n${pass} réussis, ${fail} échoués · erreurs JS: ${errs.length}`);
