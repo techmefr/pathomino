@@ -44,7 +44,9 @@ Object.assign(Pathomino.prototype, {
         (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, clr.gold2)) : null);
       else if(isStart) content=this.icon('flag',cell*.5, placed?clr.gold2:clr.text);
       else if(isKey) content=this.icon('key',cell*.52, clr.gold2);
-      else if(isDoor) content= grid.boss? h('span',{style:{fontSize:cell*.62,lineHeight:1,color:placed?clr.red:'#b98', filter:'drop-shadow(0 0 4px rgba(207,80,64,.5))'}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : this.icon('door',cell*.55, placed?clr.gold2:clr.text);
+      else if(isDoor) content= h('span',{style:{position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center'}},
+        this.icon('door',cell*.55, placed?clr.gold2:clr.text),
+        grid.boss ? h('span',{style:{position:'absolute',fontSize:cell*.42,lineHeight:1,color:placed?clr.red:'#c9a060',filter:'drop-shadow(0 0 5px rgba(207,80,64,.7))',bottom:-cell*.2,right:-cell*.22}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : null);
       else if(isTreasure) content=this.icon('chest',cell*.56, placed?clr.gold2:clr.gold);
       if(isPortalA||isPortalB) content=h('span',{style:{fontSize:cell*.38,color:clr.blue,fontWeight:900,filter:'drop-shadow(0 0 3px rgba(111,155,202,.7))'}},isPortalA?'A':'B');
       cells.push(h('div',{key:k,
