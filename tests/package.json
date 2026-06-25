@@ -1,0 +1,17 @@
+{
+  "name": "pathomino-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tests E2E Playwright (responsive multi-device + parcours de jeu). Outil de dev uniquement — le jeu lui-meme reste sans dependance.",
+  "type": "module",
+  "scripts": {
+    "setup": "npm install && npx playwright install chromium",
+    "devices": "node devices.mjs",
+    "qa": "node qa.mjs",
+    "chars": "node chars.mjs",
+    "test": "node devices.mjs && node qa.mjs && node chars.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

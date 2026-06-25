@@ -12,7 +12,7 @@
 html,body{height:100%}
 body{background:#0e0c0b;color:#ece4d6;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 button{touch-action:manipulation}
-#pm-root{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(125% 120% at 50% -10%, #1d1713 0%, #0e0c0b 58%, #070605 100%)}
+#pm-root{position:fixed;inset:0;display:flex;align-items:safe center;justify-content:safe center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(125% 120% at 50% -10%, #1d1713 0%, #0e0c0b 58%, #070605 100%)}
 @keyframes pmShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(6px)}78%{transform:translateX(-3px)}}
 @keyframes pmFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-78px) scale(1.18)}}
 @keyframes pmBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
