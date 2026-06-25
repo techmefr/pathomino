@@ -7,122 +7,32 @@ class Pathomino extends React.Component {
       vals.combatEl, vals.shopEl, vals.resultEl, vals.hudEl, vals.dragOverlay, vals.tutoOverlay, vals.muteBtn);
   }
 
-  C = {ink:'#0e0c0b',p1:'#1b1715',p2:'#241f1b',p3:'#2f2823',line:'#3a342e',line2:'#4c443b',text:'#ece4d6',mut:'#8d8377',gold:'#e0a53b',gold2:'#f3c976',red:'#cf5040',green:'#86b46a',blue:'#6f9bca'};
-  CARD = {bg:'#f3ecdd',line:'#d6cab2',red:'#b5402f',ink:'#26201b'};
-  SHAPES = {
-    I:[[0,0],[0,1],[0,2],[0,3]],
-    O:[[0,0],[0,1],[1,0],[1,1]],
-    T:[[0,0],[0,1],[0,2],[1,1]],
-    S:[[0,1],[0,2],[1,0],[1,1]],
-    Z:[[0,0],[0,1],[1,1],[1,2]],
-    L:[[0,0],[1,0],[2,0],[2,1]],
-    J:[[0,1],[1,1],[2,1],[2,0]],
-    // pentominos (5 cases) — Voleur
-    I5:[[0,0],[0,1],[0,2],[0,3],[0,4]],
-    L5:[[0,0],[1,0],[2,0],[3,0],[3,1]],
-    P5:[[0,0],[0,1],[1,0],[1,1],[2,0]],
-    T5:[[0,0],[0,1],[0,2],[1,1],[2,1]],
-    V5:[[0,0],[1,0],[2,0],[2,1],[2,2]],
-    U5:[[0,0],[0,2],[1,0],[1,1],[1,2]],
-    Z5:[[0,0],[0,1],[1,1],[2,1],[2,2]],
-    // petites pièces (2-3 cases) — Tricheur
-    D2:[[0,0],[0,1]],
-    I3:[[0,0],[0,1],[0,2]],
-    L3:[[0,0],[1,0],[1,1]]
-  };
+  C = PM.C;
+  CARD = PM.CARD;
+  SHAPES = PM.SHAPES;
   // jeu de formes par personnage : drawPiece et la boutique tirent dans ce set
-  SHAPE_SETS = {
-    tetro:['I','O','T','S','Z','L','J'],
-    pento:['I5','L5','P5','T5','V5','U5','Z5'],
-    mini:['D2','I3','L3','O','T']
-  };
+  SHAPE_SETS = PM.SHAPE_SETS;
   // Profil par perso (façon Balatro) : pieces=main de pièces de départ, draws=pioches de
   // pièces/étage, discards=défausses/combat, cards=taille de main de cartes en combat,
   // shapes=jeu de formes, power/heal=capacité spéciale.
-  CHARS = {
-    chevalier:{name:'Chevalier',icon:'sword',vie:120,force:15,defense:10,magie:4,vitesse:6,pieces:5,draws:3,discards:3,cards:8,shapes:'tetro',tag:'DÉPART',desc:'Solide, prévisible, tanky. Tétrominos classiques.',color:'#c98a3a'},
-    mage:{name:'Mage',icon:'wand',vie:78,force:5,defense:5,magie:17,vitesse:9,pieces:6,draws:3,discards:3,cards:9,shapes:'tetro',power:'portal',tag:'1 BOSS',desc:'Fragile mais dévastateur. Grande main de cartes. Un portail par étage.',color:'#6f9bca'},
-    voleur:{name:'Voleur',icon:'dagger',vie:90,force:11,defense:7,magie:9,vitesse:15,pieces:7,draws:4,discards:4,cards:8,shapes:'pento',tag:'3 BOSS',desc:'Agile, esquive souvent. Pentominos (5 cases), beaucoup de pioches et défausses.',color:'#86b46a'},
-    paladin:{name:'Paladin',icon:'sword',vie:110,force:13,defense:11,magie:4,vitesse:6,pieces:5,draws:3,discards:2,cards:8,shapes:'tetro',heal:15,tag:'5 BOSS',desc:'Comme le Chevalier, mais regagne 15 PV à chaque combat gagné. Peu de défausses.',color:'#d9c27a'},
-    tricheur:{name:'Tricheur',icon:'dagger',vie:85,force:9,defense:6,magie:9,vitesse:10,pieces:6,draws:3,discards:5,cards:9,shapes:'mini',power:'cheat',tag:'7 BOSS',desc:'Petites pièces, beaucoup de défausses. Pouvoir : la prochaine main compte 1 carte de moins (suite dès 4, paire dès 1).',color:'#b06fca'}
-  };
-  CHAR_ORDER = ['chevalier','mage','voleur','paladin','tricheur'];
-  UNLOCKS = { mage:1, voleur:3, paladin:5, tricheur:7 }; // boss à battre dans un run (chevalier : départ)
-  PIECE_WEIGHTS = {I:3,O:3,L:3,J:2,T:2,S:1,Z:1};
+  CHARS = PM.CHARS;
+  CHAR_ORDER = PM.CHAR_ORDER;
+  UNLOCKS = PM.UNLOCKS;
+  PIECE_WEIGHTS = PM.PIECE_WEIGHTS;
   HAND_MAX = 10;
   FLOOR_REFILL = 2;
   DRAWS_PER_FLOOR = 3;
   DISCARDS_PER_COMBAT = 3;
   REROLL_CAT_COST = 3; // coût pour relancer une seule catégorie de la boutique
   MAX_SCALE = 2;
-  SPRITES = {
-    chevalier:{ pal:{K:'#14100c',M:'#8b919b',L:'#d2d8e0',D:'#5a5f68',V:'#2f333a',E:'#bfe9ff',A:'#e0a53b',C:'#f3c976'},
-      rows:['..A.......A..','..AK.....KA..','...KKKKKKK...','..KLLLLLLLK..','..KLMMMMMLK..','..KMVVVVVMK..','..KMEKKKEMK..','..KMMMMMMMK..','.KKMMMMMMMKK.','KAAMMMCMMMAAK','KAAMMMCMMMAAK','.KMMMCCCMMMK.','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] },
-    mage:{ pal:{K:'#14100c',M:'#3f5d86',L:'#6f9bca',S:'#e8c39a',E:'#bfe9ff',A:'#e0a53b',O:'#7fd7ff',W:'#6b4a2a',H:'#f3c976'},
-      rows:['.....KK......','....KHHK.....','...KMHHMK.OO.','...KMMMMK.OO.','..KMMMMMK..W.','..KMMMMMK..W.','...KKSSKK..W.','..KSEKEK...W.','..KSSSSK..WW.','.KMMMMMMK.W..','.KMMLLLMMKW..','KMMLLLLLMMK..','KMMMMMMMMMK..','.KMMMK.KMMK..','..KK.....KK..'] },
-    voleur:{ pal:{K:'#14100c',M:'#3c5a3a',L:'#6fae5e',D:'#26371f',S:'#caa37a',E:'#d6ff7a',A:'#86b46a',B:'#c9c2b4',H:'#6b4a2a'},
-      rows:['....KKKKK....','...KMMMMMK...','..KMLLLLLMK..','..KMM...MMK..','..KMKSSSKMK..','..KMSEKESMK..','...KKSSSKK...','.B..KMMMK..B.','HB..KMMMK..BH','.H.KMMMMMK.H.','..KMMLLLMMK..','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] },
-    paladin:{ pal:{K:'#14100c',M:'#d8d2c4',L:'#fbf6e9',D:'#9a9588',V:'#3a3a44',E:'#bfe9ff',A:'#e0a53b',C:'#f3c976'},
-      rows:['..A.......A..','..AK.....KA..','...KKKKKKK...','..KLLLLLLLK..','..KLMMMMMLK..','..KMVVVVVMK..','..KMEKKKEMK..','..KMMMMMMMK..','.KKMMMMMMMKK.','KAAMMMCMMMAAK','KAAMMMCMMMAAK','.KMMMCCCMMMK.','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] },
-    tricheur:{ pal:{K:'#14100c',M:'#5a3a6e',L:'#9b6fca',D:'#2e1f3a',S:'#caa37a',E:'#e6b3ff',A:'#b06fca',B:'#e9e2d4',H:'#6b4a2a'},
-      rows:['....KKKKK....','...KMMMMMK...','..KMLLLLLMK..','..KMM...MMK..','..KMKSSSKMK..','..KMSEKESMK..','...KKSSSKK...','.B..KMMMK..B.','HB..KMMMK..BH','.H.KMMMMMK.H.','..KMMLLLMMK..','..KMMMMMMMK..','..KMMK.KMMK..','..KK.....KK..'] }
-  };
-  BOSSES = [
-    {key:'cavalier',glyph:'\u265E',name:'Cavalier',hpMul:1.0,atkMul:1.15,vit:11,trait:'Rapide, difficile à toucher'},
-    {key:'fou',glyph:'\u265D',name:'Fou',hpMul:1.1,atkMul:1.3,vit:7,trait:'Attaque magique perçante'},
-    {key:'tour',glyph:'\u265C',name:'Tour',hpMul:1.7,atkMul:0.9,vit:4,trait:'PV énormes, très défensif'},
-    {key:'dame',glyph:'\u265B',name:'Dame',hpMul:1.4,atkMul:1.45,vit:9,trait:'Redoutable sur tout'},
-    {key:'roi',glyph:'\u265A',name:'Roi',hpMul:2.0,atkMul:1.6,vit:7,trait:'Ultime épreuve du donjon'}
-  ];
-  SUITS = ['♥','♦','♣','♠'];
+  SPRITES = PM.SPRITES;
+  BOSSES = PM.BOSSES;
+  SUITS = PM.SUITS;
   // Jokers inspirés de Balatro. mod(mods, type, ctx) — ctx={type,cards,n,suitCounts,state}.
   // mods.flat = dégâts plats (≈ chips), mods.dmgMult = multiplicateur (≈ mult).
-  JOKERS = {
-    // — dégâts bruts / multiplicateurs —
-    joker:{name:'Joker',glyph:'🃏',color:'#ece4d6',price:4,desc:'+12 dégâts sur toutes les mains',mod:(m)=>{ m.flat+=12; }},
-    lame:{name:'Lame Affûtée',glyph:'⚔',color:'#c98a3a',price:6,desc:'+30% de dégâts',mod:(m)=>{ m.dmgMult*=1.3; }},
-    royal:{name:'Sang Royal',glyph:'♛',color:'#e0a53b',price:8,desc:'Suite, couleur, full+ : +60% dégâts',mod:(m,t)=>{ if(['suite','couleur','full','carre','quinteflush'].includes(t)) m.dmgMult*=1.6; }},
-    brute:{name:'Brute',glyph:'✊',color:'#cf5040',price:6,desc:'Paire, brelan, carré… : +80% dégâts',mod:(m,t)=>{ if(['paire','deuxpaires','brelan','full','carre'].includes(t)) m.dmgMult*=1.8; }},
-    abstrait:{name:'Joker Abstrait',glyph:'⬡',color:'#b9a7d6',price:8,desc:'+20% de dégâts par joker possédé',mod:(m,t,c)=>{ m.dmgMult*=(1+0.2*(c.state.jokers||[]).length); }},
-    // — bonus conditionnels —
-    demi:{name:'Demi-Joker',glyph:'½',color:'#86b46a',price:5,desc:'+25 dégâts si 3 cartes ou moins jouées',mod:(m,t,c)=>{ if(c.n<=3) m.flat+=25; }},
-    sommet:{name:'Sommet Mystique',glyph:'⛰',color:'#6f9bca',price:5,desc:'+60% de dégâts s\'il ne reste plus de défausse',mod:(m,t,c)=>{ if((c.state.discardsLeft||0)<=0) m.dmgMult*=1.6; }},
-    collectionneur:{name:'Collectionneur',glyph:'❖',color:'#f3c976',price:6,desc:'+5 dégâts par carte jouée',mod:(m,t,c)=>{ m.flat+=5*c.n; }},
-    banquier:{name:'Banquier',glyph:'💰',color:'#e0a53b',price:6,desc:'+1 dégât par 5 or possédé',mod:(m,t,c)=>{ m.flat+=Math.floor((c.state.gold||0)/5); }},
-    fibonacci:{name:'Fibonacci',glyph:'🌀',color:'#6f9bca',price:7,desc:'+8 dégâts par 2, 3, 5, 8 ou As joué',mod:(m,t,c)=>{ m.flat+=8*c.cards.filter(x=>[2,3,5,8,14].includes(x.rank)).length; }},
-    figures:{name:'Face Effrayante',glyph:'👑',color:'#c98a3a',price:6,desc:'+10 dégâts par figure (J, Q, K) jouée',mod:(m,t,c)=>{ m.flat+=10*c.cards.filter(x=>x.rank>=11&&x.rank<=13).length; }},
-    pile:{name:'Pile Paire',glyph:'⚖',color:'#86b46a',price:5,desc:'+6 dégâts par carte de rang pair',mod:(m,t,c)=>{ m.flat+=6*c.cards.filter(x=>x.rank%2===0).length; }},
-    // — quatuor par couleur (à la Balatro) —
-    avare:{name:'Avare',glyph:'♦',color:'#6f9bca',price:5,desc:'+6 dégâts par ♦ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♦']||0); }},
-    lubrique:{name:'Lubrique',glyph:'♥',color:'#cf5040',price:5,desc:'+6 dégâts par ♥ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♥']||0); }},
-    glouton:{name:'Glouton',glyph:'♣',color:'#86b46a',price:5,desc:'+6 dégâts par ♣ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♣']||0); }},
-    furieux:{name:'Furieux',glyph:'♠',color:'#b9a7d6',price:5,desc:'+6 dégâts par ♠ joué',mod:(m,t,c)=>{ m.flat+=6*(c.suitCounts['♠']||0); }},
-    // — effets de couleur (activent les pouvoirs de suit) —
-    trefle:{name:'Trèfle Vorace',glyph:'♣',color:'#86b46a',price:7,desc:'♣ double les dégâts de la main',mod:(m)=>{ m.clubEnabled=true; }},
-    coeur:{name:'Cœur Sacré',glyph:'♥',color:'#cf5040',price:6,desc:'♥ soigne (50% des dégâts)',mod:(m)=>{ m.healEnabled=true; }},
-    carreau:{name:'Diamant Fou',glyph:'♦',color:'#6f9bca',price:5,desc:'♦ pioche 2 cartes',mod:(m)=>{ m.drawEnabled=true; }},
-    pique:{name:'Pique Cruel',glyph:'♠',color:'#b9a7d6',price:5,desc:'♠ réduit l\'attaque ennemie de 3',mod:(m)=>{ m.spadeEnabled=true; }}
-  };
-  WEAPONS = {
-    epee: {name:'\u00c9p\u00e9e',   glyph:'\u2694', price:10, desc:'+8 d\u00e9g\u00e2ts plats',            mod:()=>({dmgFlat:8})},
-    hache:{name:'Hache',   glyph:'\u2692', price:14, desc:'+18% de tous les d\u00e9g\u00e2ts',     mod:()=>({dmgMult:1.18})},
-    dague:{name:'Dague',   glyph:'\u2020', price:12, desc:'+4 d\u00e9g\u00e2ts \u00b7 esquive +8%', mod:()=>({dmgFlat:4, dodgeBonus:0.08})},
-    baton:{name:'B\u00e2ton',   glyph:'\u2736', price:13, desc:'Brelan+ : +25% d\u00e9g\u00e2ts',        mod:()=>({strongMult:1.25})},
-  };
-  SVG = {
-    sword:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/></svg>',
-    wand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
-    dagger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v12"/><path d="M8.5 6h7"/><path d="M12 14l-2.4 4 2.4 4 2.4-4z"/></svg>',
-    key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="m10.4 12.6 8.6-8.6"/><path d="m16 6 2.5 2.5"/><path d="m13.5 8.5 2 2"/></svg>',
-    door:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17"/><path d="M3 21h16"/><path d="M19 21V9l-3-3"/><circle cx="12.5" cy="12.5" r="1.1" fill="currentColor" stroke="none"/></svg>',
-    flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2.2 4L16 12H5"/></svg>',
-    lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
-    rotate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg>',
-    deck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="13" height="16" rx="2"/><path d="M8 3h9a2 2 0 0 1 2 2v12"/></svg>',
-    heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.6 8.9 2 5.5 5.2 5.5c2 0 3.2 1.2 3.8 2.3.6-1.1 1.8-2.3 3.8-2.3C16 5.5 17.4 8.9 16 11.7 13.5 16.4 12 21 12 21Z" transform="translate(0 -1)"/></svg>',
-    coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M9.5 9.2c0-1.2 1.1-1.8 2.5-1.8s2.5.7 2.5 1.9c0 2.5-5 1.5-5 4 0 1.2 1.1 1.9 2.5 1.9s2.5-.6 2.5-1.8" stroke-linecap="round"/></svg>',
-    chest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M3 12h18"/><path d="M3 8l2-3h14l2 3"/><rect x="10.5" y="11" width="3" height="3" rx="0.5" fill="currentColor" stroke="none"/></svg>'
-  };
+  JOKERS = PM.JOKERS;
+  WEAPONS = PM.WEAPONS;
+  SVG = PM.SVG;
 
   state = {
     screen:'intro', char:null, account:null, authName:'', authPass:'', authMode:'create', authErr:'',
@@ -856,149 +766,6 @@ class Pathomino extends React.Component {
     );
   }
 
-  renderPlan(port){
-    const clr=this.C,h=React.createElement; const grid=this.state.grid; if(!grid) return h('div',null);
-    const pmap=this.placedMap(); const gc=this.ghostCells(); const gValid = gc&&this.ghostValid(gc);
-    const gset = gc? new Set(gc.map(c=>c.join(','))):new Set();
-    const cell=Math.min(Math.floor(440/grid.n),52);
-    const connected=new Set();
-    if(pmap[grid.start.join(',')]){ connected.add(grid.start.join(',')); const queue=[grid.start];
-      while(queue.length){ const [cr,cc]=queue.shift(); [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{ const nr=cr+dr,nc=cc+dc,kk=nr+','+nc;
-        if(nr>=0&&nc>=0&&nr<grid.n&&nc<grid.n&&pmap[kk]&&!connected.has(kk)){connected.add(kk);queue.push([nr,nc]);} }); } }
-    const hasOrphan = this.state.placed.some(pl=>pl.cells.some(c=>!connected.has(c.join(','))));
-    const cells=[];
-    for(let r=0;r<grid.n;r++)for(let c=0;c<grid.n;c++){
-      const k=r+','+c; const placed=pmap[k];
-      const isStart=this.eq([r,c],grid.start), isKey=this.eq([r,c],grid.key), isDoor=this.eq([r,c],grid.door);
-      const isPawn=grid.pawns.some(p=>this.eq(p,[r,c]));
-      const inGhost=gset.has(k);
-      let bg='#13100e', bd=clr.line, bstyle='solid';
-      if(placed){ if(connected.has(k)){ bg='linear-gradient(135deg,#3a2f1d,#564219)'; bd=clr.gold; }
-        else { bg='#241f1a'; bd=clr.line2; bstyle='dashed'; } }
-      const isTreasure = grid.treasure && this.eq(grid.treasure,[r,c]);
-      const isHole=(grid.holes||[]).some(p=>this.eq(p,[r,c]));
-      const isTrap=(grid.traps||[]).some(p=>this.eq(p,[r,c]));
-      const isFood=(grid.foods||[]).some(p=>this.eq(p,[r,c]));
-      const isPotion=(grid.potions||[]).some(p=>this.eq(p,[r,c]));
-      const isPortalA=this.state.portalA&&this.eq(this.state.portalA,[r,c]);
-      const isPortalB=this.state.portalB&&this.eq(this.state.portalB,[r,c]);
-      if(isFood && !placed){ bg='rgba(160,50,50,.2)'; bd='#7a3a3a'; }
-      if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
-      if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
-      if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?clr.gold2:clr.red; bstyle='solid'; }
-      if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
-      if(isPortalA||isPortalB){ bd=clr.blue; bstyle='solid'; bg='rgba(111,155,202,.22)'; }
-      if(this.state.selectingPortal&&!placed&&!isHole){ bd=clr.blue; bstyle='dashed'; }
-      let content=null;
-      if(isFood && !placed) content=h('span',{style:{fontSize:cell*.5,color:'#d96060',filter:'drop-shadow(0 0 3px rgba(220,80,80,.5))'}}, '\u2665');
-      else if(isPotion && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#a06ad0',filter:'drop-shadow(0 0 3px rgba(160,100,220,.5))'}}, '\u2697');
-      else if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
-      else if(isTrap && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#5a9a5a',filter:'drop-shadow(0 0 3px rgba(80,180,80,.5))'}}, '\u2620');
-      else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: pmap[k]?clr.red:clr.mut}}, '\u265F',
-        (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, clr.gold2)) : null);
-      else if(isStart) content=this.icon('flag',cell*.5, placed?clr.gold2:clr.text);
-      else if(isKey) content=this.icon('key',cell*.52, clr.gold2);
-      else if(isDoor) content= grid.boss? h('span',{style:{fontSize:cell*.62,lineHeight:1,color:placed?clr.red:'#b98', filter:'drop-shadow(0 0 4px rgba(207,80,64,.5))'}}, this.BOSSES[Math.min(this.state.bossIndex,4)].glyph) : this.icon('door',cell*.55, placed?clr.gold2:clr.text);
-      else if(isTreasure) content=this.icon('chest',cell*.56, placed?clr.gold2:clr.gold);
-      if(isPortalA||isPortalB) content=h('span',{style:{fontSize:cell*.38,color:clr.blue,fontWeight:900,filter:'drop-shadow(0 0 3px rgba(111,155,202,.7))'}},isPortalA?'A':'B');
-      cells.push(h('div',{key:k,
-        'data-rc':r+','+c,
-        onMouseEnter:()=>this.hoverCell(r,c),
-        onClick:()=>{
-          if(this.state.selectingPortal&&!this.state.executing){
-            if(!this.state.portalA){ if(!isHole) this.setState({portalA:[r,c]}); return; }
-            if(!this.eq(this.state.portalA,[r,c])&&!isHole){ this.setState({portalB:[r,c],portalUsed:true,selectingPortal:false,portalRecharge:this.state.floor+2}); this.sfx('valid'); return; }
-            return;
-          }
-          if(this.state.selPiece===null && pmap[k] && !this.state.executing) this.retrievePiece(r,c); else this.placeAt(r,c);
-        },
-        style:{width:cell,height:cell,background:bg,border:'1px '+bstyle+' '+bd,borderRadius:3,
-          display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
-          cursor:this.state.selPiece!==null?'pointer':'default',
-          animation: this.state.executing&&placed?'pmPulse 1s ease infinite':((this.state.justPlaced||[]).includes(k)?'pmPop .34s ease backwards':(isKey?'pmGlow 2s ease infinite':'none'))}},
-        content));
-    }
-    const gridEl=h('div',{onMouseLeave:()=>{ if(!this.state.dragging) this.setState({ghost:null}); },
-      style:{display:'grid',gridTemplateColumns:`repeat(${grid.n},${cell}px)`,gap:2,padding:14,touchAction:'none',
-        background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,boxShadow:'inset 0 0 40px rgba(0,0,0,.6)'}}, cells);
-
-    // chaque (forme + sens) est une pièce distincte : on regroupe par key@rot
-    const groups={}; this.state.hand.forEach((p,i)=>{ const gk=p.key+'@'+(p.rot||0); (groups[gk]=groups[gk]||{key:p.key,rot:p.rot||0,idx:[]}).idx.push(i); });
-    const tray = Object.values(groups).map(gr=>{
-      const sel = this.state.selPiece!==null && gr.idx.includes(this.state.selPiece);
-      const i0 = sel ? this.state.selPiece : gr.idx[0];
-      const shape=this.rotated(gr.key, gr.rot);
-      const rows=Math.max(...shape.map(c=>c[0]))+1, cols=Math.max(...shape.map(c=>c[1]))+1;
-      const sset=new Set(shape.map(c=>c.join(','))); const u=12; const mini=[];
-      for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ mini.push(h('div',{key:r+','+c,style:{width:u,height:u,
-        background:sset.has(r+','+c)?(sel?clr.gold:'#9a7a3a'):'transparent',borderRadius:2}})); }
-      return h('div',{key:gr.key+'@'+gr.rot, onMouseDown:(evt)=>this.startDrag(i0,evt), onTouchStart:(evt)=>this.startDrag(i0,evt), onClick:()=>{ if(this.state.dragging) return; this.sfx('select'); const mid=Math.floor(this.state.grid.n/2); this.setState({selPiece:sel?null:gr.idx[0], ghost:sel?null:[mid,mid]}); },
-        title:gr.key+' ×'+gr.idx.length+' — touche pour prendre, vise la grille, clique pour poser',
-        style:{position:'relative',width:64,height:64,touchAction:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:this.state.dragging&&sel?'grabbing':'grab',
-          background:sel?'rgba(224,165,59,.14)':clr.p1,border:'1px solid '+(sel?clr.gold:clr.line),borderRadius:5,transition:'background .12s,border-color .12s'}},
-        h('div',{style:{display:'grid',gridTemplateColumns:`repeat(${cols},${u}px)`,gap:2}}, mini),
-        h('div',{style:{position:'absolute',top:-7,right:-7,minWidth:18,height:18,padding:'0 4px',borderRadius:9,
-          background:gr.idx.length>1?clr.gold:clr.p3,color:gr.idx.length>1?'#1a1207':clr.mut,border:'1px solid '+(gr.idx.length>1?clr.gold2:clr.line),
-          fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '\u00d7'+gr.idx.length));
-    });
-
-    const chk=this.pathOk();
-    const head=this.state.floor; const boss=grid.boss;
-    const bdef=this.BOSSES[Math.min(this.state.bossIndex,4)];
-    const legend=[['flag','Départ'],['key','Clé'],[boss?'boss':'door',boss?bdef.name:'Porte'],['pawn','Pion (combat)'],['chest','Trésor']];
-    const noDraw=this.state.hand.length>=this.HAND_MAX || this.state.drawsLeft<=0;
-    const drawTile=h('div',{key:'__draw', onClick:()=>{ if(!noDraw) this.pickPiece(); }, title:'Piocher une pièce ('+this.state.drawsLeft+' restantes cet étage)',
-      style:{position:'relative',width:64,height:64,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,
-        cursor:noDraw?'not-allowed':'pointer',opacity:noDraw?.5:1,background:'#0e0b09',border:'1px dashed '+(noDraw?clr.line2:clr.gold),borderRadius:5}},
-      this.icon('deck',18,noDraw?clr.mut:clr.gold),
-      h('div',{className:'pm-pixel',style:{fontSize:10,color:noDraw?clr.mut:clr.gold2,lineHeight:1}}, this.state.hand.length>=this.HAND_MAX?'PLEIN':'PIOCHER'),
-      h('div',{style:{fontSize:9,letterSpacing:'.06em',color:clr.mut}}, this.state.drawsLeft+' restante'+(this.state.drawsLeft>1?'s':'')));
-
-    return h('div',{style:{animation:'pmFade .4s ease',width:'100%',maxWidth:port?504:1060,padding:port?'10px 8px':'18px 26px'}},
-      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:port?12:18}},
-        h('div',{style:{display:'flex',alignItems:'center',gap:14}},
-          h('span',{className:'pm-pixel',style:{fontSize:15,color:clr.gold}}, 'PATHOMINO'),
-          h('span',{style:{fontSize:13,color:clr.mut,padding:'4px 12px',border:'1px solid '+clr.line,borderRadius:20}},
-            `Étage ${head} · ${boss?'BOSS — '+bdef.name : 'Normal'}`)),
-        h('div',{style:{display:'flex',gap:18,alignItems:'center'}},
-          this.statChip('heart', this.state.php+'/'+this.state.pmax, clr.red),
-          this.statChip('coin', this.state.gold, clr.gold),
-          h('span',{style:{fontSize:12,color:clr.mut}}, this.state.bossesBeaten+' boss vaincus'),
-          h('button',{onClick:()=>this.openTuto(), title:'Comment jouer',
-            style:{width:26,height:26,borderRadius:'50%',cursor:'pointer',background:clr.p2,border:'1px solid '+clr.line2,color:clr.gold,fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}, '?'))),
-      h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?16:26,alignItems:port?'center':'flex-start'}},
-        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}}, gridEl,
-          ),
-        h('div',{style:{width:port?'100%':300,maxWidth:port?460:'none',background:clr.p1,border:'1px solid '+clr.line,borderRadius:8,padding:port?16:20}},
-
-          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:10}},
-            h('span',null,'TA MAIN'),
-            h('span',{style:{color:clr.gold2,letterSpacing:'.04em'}}, this.state.hand.length+'/'+this.HAND_MAX+' pièces')),
-          h('div',{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8,alignItems:'center'}}, [...tray, drawTile]),
-          this.state.selectingPortal ? h('div',{style:{fontSize:12,color:clr.blue,marginBottom:12}}, this.state.portalA ? 'Portail : clique la 2ème cellule (A posé)' : 'Portail : clique une 1ère cellule') : this.state.selPiece!==null? h('div',{style:{fontSize:12,color:clr.gold,marginBottom:12}}, 'Vise la grille → clique pour poser.') : h('div',{style:{fontSize:12,color:clr.mut,marginBottom:12}}, 'Chaque pièce a son orientation — prends-en une, vise la grille, clique.'),
-          h('div',{style:{display:'flex',gap:8,marginBottom:10,marginTop:8}},
-            this.btn('Annuler', ()=>this.undo(), {small:true,danger:true,disabled:!this.state.placed.length}),
-            this.state.char==='mage'?this.btn(
-              this.state.selectingPortal?'Annuler portail':(this.state.portalUsed?'\u29bf Portail (\u00e9t.'+this.state.portalRecharge+')':'\u29bf Portail'),
-              ()=>{ if(!this.state.portalUsed||this.state.selectingPortal) this.setState(s=>({selectingPortal:!s.selectingPortal,portalA:null})); },
-              {small:true,disabled:this.state.portalUsed&&!this.state.selectingPortal}):null),
-          h('div',{style:{height:1,background:clr.line,margin:'14px 0'}}),
-          this.state.poisoned ? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:8,padding:'6px 10px',background:'rgba(86,154,90,.1)',border:'1px solid '+clr.green,borderRadius:5,fontSize:12,color:clr.green}},
-            h('span',null,'☠'),
-            h('span',null,'Empoisonné — +3 dmg/tour en combat')) : null,
-          h('div',{style:{fontSize:13,color:chk.ok?clr.green:clr.mut,marginBottom:hasOrphan?6:12,minHeight:20}}, chk.ok?'\u2713 Chemin valide — prêt à explorer':(chk.reason||'')),
-          hasOrphan? h('div',{style:{fontSize:12,color:clr.red,marginBottom:12}}, 'Pièces non reliées') : null,
-          this.btn(this.state.executing?'Exploration...':'Tracer le chemin \u2192', ()=>this.validate(), {primary:true,wide:true,disabled:!chk.ok||this.state.executing}),
-          this.btn('Abandonner le run', ()=>this.death(), {small:true,wide:true,danger:true}),
-          this.state.weapon ? h('div',{style:{display:'flex',alignItems:'center',gap:8,marginTop:10,padding:'6px 10px',background:'rgba(224,165,59,.08)',border:'1px solid #4a3a1a',borderRadius:5,fontSize:11}},
-            h('span',{style:{fontSize:16,color:this.C.gold}}, this.WEAPONS[this.state.weapon].glyph),
-            h('div',null,
-              h('div',{style:{color:this.C.gold,fontWeight:700}}, this.WEAPONS[this.state.weapon].name),
-              h('div',{style:{color:this.C.mut}}, this.WEAPONS[this.state.weapon].desc))) : null
-        )
-      )
-    );
-  }
   statChip(ic,val,col){ const clr=this.C,h=React.createElement;
     return h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:13,fontWeight:600,color:clr.text}},
       this.icon(ic,16,col), val); }
@@ -1024,126 +791,6 @@ class Pathomino extends React.Component {
       h('span',{style:{fontSize:11,color:clr.mut}}, s.bossesBeaten+'/5 boss'));
   }
 
-  renderCombat(port){
-    const clr=this.C,h=React.createElement; const enemy=this.state.enemy; if(!enemy) return h('div',null);
-    const ch=this.CHARS[this.state.char];
-    const sel=this.state.csel.map(uid=>this.state.chand.find(c=>c.uid===uid)).filter(Boolean);
-    const combo=this.detect(sel);
-    const ehpPct=Math.max(0,(enemy.hp/enemy.max)*100), phpPct=Math.max(0,(this.state.php/this.state.pmax)*100);
-    const floats=(t)=>this.state.floats.filter(f=>f.target===t).map(f=>
-      h('div',{key:f.id,style:{position:'absolute',left:'50%',top:'30%',transform:'translateX(-50%)',
-        fontFamily:'Press Start 2P',fontSize:18,color:f.color,animation:'pmFloatUp 1.1s ease forwards',pointerEvents:'none',whiteSpace:'nowrap',textShadow:'0 2px 0 #000'}}, f.text));
-
-    const isBoss=enemy.kind==='boss';
-    const enemyBox = (w)=> h('div',{style:{width:w}},
-      h('div',{style:{background:'#0e0b09',border:'2px solid '+clr.line2,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
-        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}},
-          h('span',{className:'pm-pixel',style:{fontSize:11,color:clr.text}}, enemy.name),
-          h('span',{style:{fontSize:11,color:clr.mut}}, isBoss?'BOSS':'Niv.'+this.state.floor)),
-        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+clr.line}},
-          h('div',{style:{height:'100%',width:ehpPct+'%',background:ehpPct>30?'linear-gradient(90deg,#86b46a,#5d8a45)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
-        h('div',{style:{textAlign:'right',fontSize:11,color:clr.mut,marginTop:3}}, enemy.hp+'/'+enemy.max+' PV'),
-        enemy.suit? h('div',{style:{display:'flex',alignItems:'center',gap:6,marginTop:6,paddingTop:6,borderTop:'1px solid '+clr.line}},
-          h('span',{style:{fontSize:11,color:clr.mut}}, 'Immunité'),
-          h('span',{style:{fontSize:15,color:(enemy.suit==='\u2665'||enemy.suit==='\u2666')?clr.red:clr.text}}, enemy.suit),
-          h('span',{style:{fontSize:11,color:clr.mut}}, '\u2014 annule ce pouvoir')):null));
-
-    const jokerBarInner = this.state.jokers.length? h('div',{style:{display:'flex',gap:6,zIndex:5}},
-      this.state.jokers.map((key,i)=>{ const joker=this.JOKERS[key]; return h('div',{key:i,title:joker.name+' \u2014 '+joker.desc,style:{width:34,height:46,borderRadius:6,background:'linear-gradient(165deg,#2a2438,#171320)',border:'1.5px solid '+joker.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:joker.color,boxShadow:'0 3px 6px rgba(0,0,0,.5)'}}, joker.glyph); })):null;
-
-    const enemySprite=h('div',{key:'esp'+(this.state.combatSeq||0),style:{animation:'pmEnemyIn .5s cubic-bezier(.2,.9,.25,1) backwards'}},
-      h('div',{style:{position:'relative',textAlign:'center',animation: this.state.defeating?'pmDefeat .7s ease forwards':(this._shake==='enemy'?'pmShake .45s':'pmBob 2.6s ease-in-out infinite')}},
-        floats('enemy'),
-        h('div',{style:{position:'relative',display:'inline-block'}},
-          h('div',{style:{fontSize:isBoss?108:84,lineHeight:1,color:isBoss?clr.red:clr.text,filter:'drop-shadow(0 6px 8px rgba(0,0,0,.6))'+(isBoss?' drop-shadow(0 0 14px rgba(207,80,64,.5))':'')}}, enemy.glyph),
-          h('div',{key:'flash'+(this.state.hitFlash||0),style:{position:'absolute',inset:'-8px',borderRadius:'50%',background:'radial-gradient(circle,#fff,rgba(255,255,255,0) 68%)',mixBlendMode:'screen',opacity:0,animation:(this.state.hitFlash>0?'pmFlash .42s ease':'none'),pointerEvents:'none'}})),
-        h('div',{style:{width:isBoss?150:120,height:18,margin:'2px auto 0',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
-
-    const heroSprite=h('div',{key:'hsp'+(this.state.combatSeq||0),style:{animation:'pmHeroIn .5s cubic-bezier(.2,.9,.25,1) backwards',animationDelay:'.12s'}},
-      h('div',{style:{position:'relative',textAlign:'center',animation:this._shake==='hero'?'pmShake .45s':'none'}},
-      floats('hero'),
-      h('div',{style:{display:'flex',justifyContent:'center',alignItems:'flex-end',width:130,height:128}}, this.pixelSprite(this.state.char, 8)),
-      h('div',{style:{width:120,height:18,margin:'0 auto',borderRadius:'50%',background:'radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%)'}})));
-
-    const heroBox=(w)=>h('div',{style:{width:w}},
-      h('div',{style:{background:'#0e0b09',border:'2px solid '+clr.gold,borderRadius:6,padding:'10px 14px',boxShadow:'0 4px 0 rgba(0,0,0,.4)'}},
-        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}},
-          h('span',{className:'pm-pixel',style:{fontSize:11,color:clr.gold}}, ch.name),
-          h('span',{style:{fontSize:11,color:clr.mut}}, 'VIT '+ch.vitesse+(this.state.spadeRed?' · \u2660-'+this.state.spadeRed:''))),
-        h('div',{style:{height:9,background:'#000',borderRadius:5,overflow:'hidden',border:'1px solid '+clr.line}},
-          h('div',{style:{height:'100%',width:phpPct+'%',background:phpPct>30?'linear-gradient(90deg,#e9b24b,#c98a2f)':'linear-gradient(90deg,#cf5040,#9a2f22)',transition:'width .5s ease'}})),
-        h('div',{style:{textAlign:'right',fontSize:11,color:clr.mut,marginTop:3}}, this.state.php+'/'+this.state.pmax+' PV'),
-        this.state.weapon?h('div',{style:{display:'flex',alignItems:'center',gap:5,marginTop:6,paddingTop:6,borderTop:'1px solid '+clr.line}},
-          h('span',{style:{fontSize:14,color:clr.gold}}, this.WEAPONS[this.state.weapon].glyph),
-          h('span',{style:{fontSize:10,color:clr.mut}}, this.WEAPONS[this.state.weapon].name),
-          h('span',{style:{fontSize:10,color:clr.gold2}}, this.WEAPONS[this.state.weapon].desc)):null));
-  // heroBox closing
-
-    const hand=this.state.chand; const nC=hand.length;
-    const fan=hand.map((card,i)=>{
-      const seld=this.state.csel.includes(card.uid); const hov=this.state.hoverCard===card.uid;
-      const mid=(nC-1)/2; const rotDeg=(i-mid)*5; const lift=Math.abs(i-mid)*6;
-      return h('div',{key:card.uid, onClick:()=>this.toggleCard(card.uid),
-        onMouseEnter:()=>this.setState({hoverCard:card.uid}), onMouseLeave:()=>this.setState({hoverCard:null}),
-        style:{transform:`rotate(${rotDeg}deg) translateY(${lift - (seld?40:hov?18:0)}px)`,transformOrigin:'bottom center',
-          transition:'transform .15s ease',cursor:'pointer',marginLeft:i?-22:0,zIndex:seld?40:hov?30:i, position:'relative'}},
-        this.renderCard(card, seld, i));
-    });
-
-    const canPlay=combo&&combo.valid;
-    const backdrop=h('div',{style:{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 56px),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 56px)',maskImage:'linear-gradient(180deg,transparent,#000 40%,transparent 70%)'}});
-    const glow=h('div',{style:{position:'absolute',top:0,left:0,right:0,height:300,background:'radial-gradient(60% 80% at 78% 30%,rgba(207,80,64,.12),transparent)'}});
-    const comboReadout=(w)=>h('div',{style:{width:w||'auto',flexShrink:0,textAlign:w?'left':'center',position:'relative',zIndex:50,background:'rgba(14,11,9,.82)',border:'1px solid '+clr.line,borderRadius:8,padding:'8px 12px'}},
-      h('div',{style:{fontSize:11,letterSpacing:'.12em',color:clr.mut,marginBottom:4}}, 'COMBINAISON'),
-      h('div',{className:'pm-pixel',style:{fontSize:14,color:canPlay?clr.gold:clr.mut,marginBottom:6,lineHeight:1.3}}, combo?combo.name:'—'),
-      canPlay? h('div',{style:{fontSize:13,color:clr.text}}, combo.dmg+' dégâts'+(this.state.csel.length?' · '+this.state.csel.length+'/5':'')) : h('div',{style:{fontSize:12,color:clr.mut}}, 'Sélectionne 1 à 5 cartes'),
-      canPlay&&combo.effect? h('div',{style:{fontSize:12,color:clr.gold2,marginTop:3}}, combo.effect):null);
-    const fanArea=h('div',{style:{flex:1,display:'flex',justifyContent:'center',alignItems:'flex-end',paddingTop:30,minHeight:120,padding:'30px 10px 0'}}, fan.length?fan:h('span',{style:{color:clr.mut,fontSize:13}},'Deck vide'));
-    const deckInfo=h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:11,color:clr.mut,justifyContent:'center'}}, this.icon('deck',14,clr.mut), 'Deck '+this.state.deck.length+' · Défausse '+this.state.discard.length);
-    const playBtn=this.btn('Jouer', ()=>this.play(), {primary:true,wide:true,small:true,disabled:!canPlay||this.state.busy});
-    const discBtn=this.btn('Défausser ('+this.state.discardsLeft+')', ()=>this.discardHand(), {wide:true,small:true,disabled:!this.state.csel.length||this.state.busy||this.state.discardsLeft<=0});
-    const cheatBtn=this.state.char==='tricheur'? this.btn(
-      this.state.cheatArmed?'✦ Triche armée':(this.state.cheatUsed?'Triché — recharge en boutique':'✦ Tricher (-1 carte)'),
-      ()=>{ if(!this.state.cheatUsed&&!this.state.busy){ this.sfx('valid'); this.setState({cheatArmed:true,cheatUsed:true,log:'Triche armée : la prochaine main compte 1 carte de moins.'}); } },
-      {wide:true,small:true,danger:this.state.cheatArmed,disabled:this.state.cheatUsed||this.state.busy}):null;
-    const logToast=h('div',{style:{position:'absolute',top:14,left:'50%',transform:'translateX(-50%)',background:'rgba(14,11,9,.85)',border:'1px solid '+clr.line,borderRadius:20,padding:'6px 18px',fontSize:12,color:clr.text,maxWidth:port?420:480,textAlign:'center',zIndex:6}}, this.state.log);
-
-    if(port){
-      return h('div',{style:{animation:'pmFade .4s ease',width:464,height:884,position:'relative',
-        background:'linear-gradient(180deg,#2a2520 0%,#1c1814 52%,#15110e 100%)',borderRadius:10,
-        border:'1px solid '+clr.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
-        backdrop, glow, logToast,
-        h('div',{style:{position:'absolute',top:0,left:0,right:0,bottom:272,display:'flex',flexDirection:'column',alignItems:'center',padding:'54px 18px 0',gap:4}},
-          enemyBox(384),
-          h('div',{style:{transform:'scale(.9)'}}, enemySprite),
-          jokerBarInner? h('div',{style:{display:'flex',justifyContent:'center',margin:'2px 0'}}, jokerBarInner):null,
-          h('div',{style:{transform:'scale(.9)'}}, heroSprite),
-          heroBox(360)),
-        h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:272,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 38%)',borderTop:'2px solid '+clr.line,display:'flex',flexDirection:'column',padding:'12px 14px 14px'}},
-          comboReadout(null),
-          fanArea,
-          h('div',{style:{display:'flex',gap:8,alignItems:'stretch',marginTop:6,position:'relative',zIndex:50}},
-            h('div',{style:{flex:1}}, playBtn),
-            h('div',{style:{flex:1}}, discBtn)),
-          cheatBtn? h('div',{style:{marginTop:6,position:'relative',zIndex:50}}, cheatBtn):null,
-          h('div',{style:{marginTop:8,position:'relative',zIndex:50}}, deckInfo)));
-    }
-
-    return h('div',{style:{animation:'pmFade .4s ease',width:920,height:600,position:'relative',
-      background:'linear-gradient(180deg,#2a2520 0%,#1c1814 52%,#15110e 100%)',borderRadius:10,
-      border:'1px solid '+clr.line,overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.6)'}},
-      backdrop, glow,
-      h('div',{style:{position:'absolute',top:30,right:46}}, enemyBox(300)),
-      h('div',{style:{position:'absolute',top:118,right:96}}, enemySprite),
-      h('div',{style:{position:'absolute',bottom:150,left:230}}, heroBox(280)),
-      h('div',{style:{position:'absolute',bottom:166,left:80}}, heroSprite),
-      jokerBarInner? h('div',{style:{position:'absolute',top:14,left:14}}, jokerBarInner):null,
-      h('div',{style:{position:'absolute',left:0,right:0,bottom:0,height:142,background:'linear-gradient(180deg,rgba(14,11,9,.4),#0e0b09 40%)',borderTop:'2px solid '+clr.line,display:'flex',alignItems:'center',padding:'0 22px',gap:20}},
-        comboReadout(210),
-        fanArea,
-        h('div',{style:{width:164,flexShrink:0,position:'relative',zIndex:50,display:'flex',flexDirection:'column',gap:8,background:'#0e0b09',border:'1px solid '+clr.line,borderRadius:8,padding:'10px 12px'}}, playBtn, discBtn, cheatBtn, deckInfo)),
-      logToast);
-  }
   renderCard(card, seld, idx){
     const clr=this.CARD,h=React.createElement;
     const dealAnim = (typeof idx==='number') ? {animation:'pmDealUp .42s cubic-bezier(.2,.8,.2,1) backwards', animationDelay:(idx*0.045)+'s'} : {};
@@ -1163,99 +810,6 @@ class Pathomino extends React.Component {
       h('div',{style:{position:'absolute',bottom:4,right:6,fontSize:14,fontWeight:700,color:col,lineHeight:1,textAlign:'center',transform:'rotate(180deg)'}}, lab, h('div',{style:{fontSize:11}},card.suit)));
   }
 
-  renderShop(port){
-    const clr=this.C,h=React.createElement;
-    const shop=this.state.shop||{jokers:[],pieces:[],cards:[],weapons:[],trimCard:null,trimPiece:null,portalReset:null};
-    const gold=this.state.gold;
-    const tag=(price,sold)=>h('div',{style:{marginBottom:-9,zIndex:2,position:'relative',padding:'3px 9px',borderRadius:5,fontFamily:'Press Start 2P',fontSize:8,letterSpacing:'.02em',
-      background:sold?clr.p3:'linear-gradient(180deg,#e9b24b,#c98a2f)',color:sold?clr.mut:'#1a1207',border:'1px solid '+(sold?clr.line:clr.gold2)}}, sold?'VENDU':price+' or');
-    const offer=(price,sold,afford,onBuy,inner,capW,caption,di)=>h('div',{style:{width:capW,display:'flex',flexDirection:'column',alignItems:'center',animation:'pmScaleIn .4s cubic-bezier(.2,.8,.2,1) backwards',animationDelay:(0.06*(di||0))+'s'}},
-      tag(price,sold),
-      h('div',{onClick:(!sold&&afford)?onBuy:null,
-        onMouseEnter:evt=>{if(!sold&&afford)evt.currentTarget.style.transform='translateY(-7px)';},
-        onMouseLeave:evt=>evt.currentTarget.style.transform='none',
-        style:{cursor:(!sold&&afford)?'pointer':'default',opacity:sold?.32:(afford?1:.5),filter:(afford||sold)?'none':'grayscale(.5)',transition:'transform .12s',padding:'10px 0 4px'}}, inner),
-      caption||null);
-    const jokerCard=(j)=>h('div',{style:{width:78,height:104,borderRadius:8,background:'linear-gradient(165deg,#2a2438,#171320)',border:'2px solid '+j.color,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',boxShadow:'0 5px 12px rgba(0,0,0,.55)'}},
-      h('div',{style:{fontSize:32,color:j.color,lineHeight:1}}, j.glyph),
-      h('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'.12em',color:clr.mut,marginTop:8}}, 'JOKER'));
-    const pieceCard=(shapeKey,rot)=>h('div',{style:{width:78,height:92,borderRadius:8,background:clr.p2,border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center'}}, this.miniPiece(shapeKey,rot||0,14,clr.gold));
-    const rerollCost=this.REROLL_CAT_COST;
-    const section=(title,sub,offers,cat)=>h('div',{style:{marginBottom:14}},
-      h('div',{style:{display:'flex',alignItems:'baseline',gap:8,marginBottom:7}},
-        h('span',{style:{fontSize:11,letterSpacing:'.16em',color:clr.gold,fontWeight:700}}, title),
-        h('span',{style:{fontSize:11,color:clr.mut,flex:1}}, sub),
-        cat? h('button',{onClick:()=>{ if(gold>=rerollCost) this.rerollCategory(cat); },
-          disabled:gold<rerollCost, title:'Relancer cette catégorie',
-          style:{fontFamily:'Space Grotesk',fontSize:11,fontWeight:600,padding:'3px 9px',borderRadius:4,
-            border:'1px solid '+(gold>=rerollCost?clr.line2:clr.line),background:clr.p2,
-            color:gold>=rerollCost?clr.gold2:clr.mut,cursor:gold>=rerollCost?'pointer':'not-allowed',
-            opacity:gold>=rerollCost?1:.5,whiteSpace:'nowrap'}}, '↻ '+rerollCost):null),
-      h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',background:'#0c0a09',border:'1px solid '+clr.line,borderRadius:8,padding:'12px 14px',minHeight:96}}, offers.length?offers:h('span',{style:{fontSize:12,color:clr.mut,alignSelf:'center'}}, '\u2014 \u00e9puis\u00e9')));
-
-    const weaponCard=(w)=>h('div',{style:{width:78,height:92,borderRadius:8,background:'linear-gradient(165deg,#241a10,#140e08)',border:'1.5px solid '+clr.gold2,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4}},
-      h('div',{style:{fontSize:32,color:clr.gold}},'\u2694'.replace('\u2694',w.glyph||'\u2694')),
-      h('div',{style:{fontSize:8,color:clr.mut,letterSpacing:'.1em'}}, 'ARME'));
-    const curWep=this.state.weapon?this.WEAPONS[this.state.weapon]:null;
-    const weaponOffers=shop.weapons.map((deal,i)=>{ const weapon=this.WEAPONS[deal.key]; const afford=gold>=deal.price;
-      return offer(deal.price,deal.sold,afford,()=>this.buyShop('weapons',i), weaponCard(weapon), 100,
-        h('div',{style:{textAlign:'center',marginTop:2}},
-          h('div',{style:{fontSize:11,fontWeight:700,color:clr.gold}}, weapon.name),
-          h('div',{style:{fontSize:10,color:clr.mut,lineHeight:1.3,marginTop:2}}, weapon.desc)), i+6); });
-    const jokerOffers=shop.jokers.map((deal,i)=>{ const joker=this.JOKERS[deal.key]; const afford=gold>=deal.price && this.state.jokers.length<5;
-      return offer(deal.price,deal.sold,afford,()=>this.buyShop('jokers',i), jokerCard(joker), 122,
-        h('div',{style:{textAlign:'center',marginTop:2}},
-          h('div',{style:{fontSize:11,fontWeight:700,color:joker.color}}, joker.name),
-          h('div',{style:{fontSize:10,color:clr.mut,lineHeight:1.3,marginTop:2}}, joker.desc)), i); });
-    const pieceOffers=shop.pieces.map((deal,i)=>{ const afford=gold>=deal.price && this.state.hand.length<this.HAND_MAX;
-      return offer(deal.price,deal.sold,afford,()=>this.buyShop('pieces',i), pieceCard(deal.shape,deal.rot), 86, null, i+2); });
-    const cardOffers=shop.cards.map((deal,i)=>{ const afford=gold>=deal.price;
-      return offer(deal.price,deal.sold,afford,()=>this.buyShop('cards',i), this.renderCard({rank:deal.rank,suit:deal.suit},false), 72, null, i+4); });
-    const trimCardOffer=shop.trimCard ? offer(shop.trimCard.price,shop.trimCard.sold,gold>=shop.trimCard.price,()=>this.buyShop('trimCard'),
-      h('div',{style:{width:60,height:86,borderRadius:6,background:'#1a0f0c',border:'2px dashed '+clr.red,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:clr.red}},'✂'),
-      72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une carte du deck'), 7) : null;
-    const trimPieceOffer=shop.trimPiece ? offer(shop.trimPiece.price,shop.trimPiece.sold,gold>=shop.trimPiece.price,()=>this.buyShop('trimPiece'),
-      h('div',{style:{width:60,height:60,borderRadius:6,background:'#0e1a0e',border:'2px dashed '+clr.green,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,color:clr.green}},'✂'),
-      72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Supprimer une pièce de main'), 8) : null;
-
-    const ownedJk=h('div',{style:{display:'flex',gap:6,alignItems:'center'}},
-      h('span',{style:{fontSize:11,color:clr.mut,marginRight:2}}, 'Jokers '+this.state.jokers.length+'/5'),
-      this.state.jokers.length? this.state.jokers.map((key,i)=>{ const joker=this.JOKERS[key];
-        return h('div',{key:i,title:joker.name+' \u2014 '+joker.desc,style:{width:28,height:28,borderRadius:6,background:'#171320',border:'1px solid '+joker.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,color:joker.color}}, joker.glyph); })
-        : h('span',{style:{fontSize:11,color:clr.line2}}, 'aucun'));
-
-    return h('div',{style:{animation:'pmFade .4s ease',width:port?452:860,padding:port?16:24,background:clr.p1,border:'1px solid '+clr.line,borderRadius:10}},
-      (this.state.newUnlock&&this.state.newUnlock.length)? h('div',{style:{background:'rgba(134,180,106,.14)',border:'1px solid '+clr.green,borderRadius:6,padding:'10px 14px',marginBottom:14,color:clr.green,fontSize:13,fontWeight:600,textAlign:'center'}}, '★ Nouveau perso débloqué : '+this.state.newUnlock.map(k=>this.CHARS[k].name).join(', ')+' ! Choisis-le au prochain run.') : null,
-      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
-        h('div',null,
-          h('div',{className:'pm-pixel',style:{fontSize:20,color:clr.gold,textShadow:'0 3px 0 #6e4a1a'}}, 'BOUTIQUE'),
-          h('div',{style:{fontSize:12,color:clr.mut,marginTop:6}}, 'Achète directement \u2014 tu vois ce que tu prends.')),
-        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}},
-          this.statChip('coin', gold+' or', clr.gold), ownedJk)),
-      h('div',{style:{display:'flex',flexDirection:port?'column':'row',gap:port?12:16,alignItems:'stretch'}},
-        h('div',{style:{width:port?'100%':128,flexShrink:0,display:'flex',flexDirection:port?'row':'column',gap:8,flexWrap:'wrap',alignItems:port?'center':'stretch'}},
-          h('div',{style:{flex:port?'1':'none',minWidth:port?120:'auto'}}, this.btn('\u00c9tage suivant \u2192', ()=>this.leaveShop(), {primary:true,wide:true,small:true})),
-          h('div',{style:{flex:port?'1':'none',minWidth:port?120:'auto'}}, this.btn('Reroll \u00b7 5 or', ()=>this.rerollShop(), {wide:true,small:true,disabled:gold<5})),
-          h('div',{style:{fontSize:11,color:clr.mut,lineHeight:1.5,marginTop:port?0:6,flexBasis:port?'100%':'auto'}}, 'L\u2019or ne se conserve pas entre les runs. Les jokers sont passifs : ils restent actifs en combat.')),
-        h('div',{style:{flex:1}},
-          section('JOKERS', 'passifs \u2014 amplifient tes pouvoirs', jokerOffers, 'jokers'),
-          section('PI\u00c8CES', ({tetro:'t\u00e9trominos (4 cases)',pento:'pentominos (5 cases)',mini:'petites pi\u00e8ces'}[(this.CHARS[this.state.char]||{}).shapes||'tetro'])+' pour ta main', pieceOffers, 'pieces'),
-          section('CARTES', 'ajout\u00e9es \u00e0 ton deck de combat', cardOffers, 'cards'),
-          section('ARMES', curWep?'\u00e9quip\u00e9e : '+curWep.name:'aucune \u00e9quip\u00e9e', weaponOffers, 'weapons'),
-          (()=>{
-            const portalResetOffer=shop.portalReset?offer(shop.portalReset.price,shop.portalReset.sold,gold>=shop.portalReset.price,()=>this.buyShop('portalReset'),
-              h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(111,155,202,.1)',border:'2px dashed '+clr.blue,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:clr.blue}},'\u29bf'),
-              72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Recharger le portail'), 9):null;
-            const cheatResetOffer=shop.cheatReset?offer(shop.cheatReset.price,shop.cheatReset.sold,gold>=shop.cheatReset.price,()=>this.buyShop('cheatReset'),
-              h('div',{style:{width:60,height:60,borderRadius:6,background:'rgba(176,111,202,.12)',border:'2px dashed #b06fca',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,color:'#b06fca'}},'\u2726'),
-              72, h('div',{style:{fontSize:10,color:clr.mut,marginTop:2,textAlign:'center'}}, 'Recharger la triche'), 9):null;
-            const elaguerOffers=[trimCardOffer,trimPieceOffer,portalResetOffer,cheatResetOffer].filter(Boolean);
-            return elaguerOffers.length>0?section('\u00c9LAGUER', 'all\u00e8ge tes decks', elaguerOffers):null;
-          })()
-        )
-      )
-    )
-  }
 
   renderResult(){
     const clr=this.C,h=React.createElement;
