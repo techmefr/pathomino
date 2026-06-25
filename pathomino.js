@@ -725,23 +725,34 @@ class Pathomino extends React.Component {
 
     const lockMsg = isLocked ? ('Bats '+entry.need+' boss pour le débloquer') : null;
 
-    const spriteEl = isLocked ?
-      h('div',{style:{width:130,height:140,display:'flex',alignItems:'center',justifyContent:'center',fontSize:72,color:clr.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
-      h('div',{}, this.pixelSprite(k, 10));
+    // teinte dérivée de la couleur du perso (pour le halo / lueur de la carte)
+    const hex2rgb=(hx)=>{ const num=parseInt(hx.slice(1),16); return [(num>>16)&255,(num>>8)&255,num&255]; };
+    const [rr,gg,bb]=hex2rgb(isLocked?'#8d8377':c.color); const tint=(a)=>`rgba(${rr},${gg},${bb},${a})`;
+
+    const portrait = isLocked ?
+      h('div',{style:{width:'100%',height:port?206:240,borderRadius:8,border:'1px dashed '+clr.line2,background:'#0c0a09',display:'flex',alignItems:'center',justifyContent:'center',fontSize:84,color:clr.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
+      h('div',{style:{position:'relative',width:'100%',height:port?206:240,borderRadius:8,overflow:'hidden',
+        background:'radial-gradient(120% 92% at 50% 16%, '+tint(0.30)+' 0%, #0e0b09 72%)',
+        border:'1px solid '+tint(0.45),boxShadow:'inset 0 0 30px rgba(0,0,0,.5)',display:'flex',alignItems:'flex-end',justifyContent:'center'}},
+        h('img',{src:'./heroes/'+k+'.webp',alt:c.name,draggable:false,
+          style:{height:'97%',width:'auto',maxWidth:'100%',objectFit:'contain',pointerEvents:'none',
+            filter:'drop-shadow(0 8px 16px rgba(0,0,0,.55))',animation:'pmRise .5s cubic-bezier(.2,.8,.2,1) backwards'}}));
 
     const card = h('div',{
       onTouchStart:(evt)=>{ this._swipeX=evt.touches[0].clientX; },
       onTouchEnd:(evt)=>{ const dx=evt.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); },
-      style:{display:'flex',flexDirection:'column',alignItems:'center',gap:10,padding:port?'20px 16px':'26px 28px',
-        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?clr.line:c.color),borderRadius:10,
-        width:port?290:320,minHeight:460,animation:'pmFade .3s ease',transition:'border-color .3s'}},
-      spriteEl,
-      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?clr.mut:clr.text}}, isLocked?'???':c.name),
+      style:{display:'flex',flexDirection:'column',alignItems:'center',gap:8,padding:port?'14px 14px':'16px 18px',
+        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?clr.line:c.color),borderRadius:12,
+        boxShadow:isLocked?'none':'0 12px 30px '+tint(0.18)+', inset 0 1px 0 rgba(255,255,255,.05)',
+        width:port?290:320,animation:'pmFade .3s ease',transition:'border-color .3s,box-shadow .3s'}},
+      portrait,
+      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?clr.mut:c.color,textShadow:isLocked?'none':'0 2px 0 rgba(0,0,0,.55)',marginTop:2}}, isLocked?'???':c.name),
+      isLocked? null : h('div',{style:{fontSize:9,letterSpacing:'.2em',color:clr.mut}}, c.tag),
       lockMsg ?
         h('div',{style:{fontSize:12,color:clr.mut,fontStyle:'italic',textAlign:'center'}}, lockMsg) :
-        h('div',{style:{fontSize:13,color:clr.mut,textAlign:'center',lineHeight:1.4}}, c.desc),
+        h('div',{style:{fontSize:12.5,color:clr.mut,textAlign:'center',lineHeight:1.4,minHeight:34}}, c.desc),
       statsEl,
-      isLocked ? null : h('div',{style:{marginTop:'auto',width:'100%',paddingTop:12}},
+      isLocked ? null : h('div',{style:{marginTop:6,width:'100%'}},
         this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true}))
     );
 
@@ -879,7 +890,7 @@ class Pathomino extends React.Component {
       introEl:s.screen==='intro'?this.renderIntro():null,
       homeEl:s.screen==='home'?this.scaleWrap(this.renderHome(port), port?360:880, port?900:660):null,
       authEl:s.screen==='auth'?this.scaleWrap(this.renderAuth(port), port?340:420, port?620:560):null,
-      selectEl:s.screen==='select'?this.scaleWrap(this.renderSelect(port), port?360:820, port?1400:700):null,
+      selectEl:s.screen==='select'?this.scaleWrap(this.renderSelect(port), port?360:820, port?1460:780):null,
       planEl:s.screen==='plan'?this.scaleWrap(this.renderPlan(port), port?528:1092, port?1040:690, 48):null,
       combatEl:s.screen==='combat'?this.scaleWrap(this.renderCombat(port), port?464:920, port?884:600, 48):null,
       shopEl:s.screen==='shop'?this.scaleWrap(this.renderShop(port), port?452:884, port?1190:1120, 48):null,

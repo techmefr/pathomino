@@ -1,3 +1,10 @@
 # prototype source archive + extraction (kept locally, not deployed)
 *.zip
 _extracted/
+
+# sources lourdes des heros (gardees localement) -> deployees en heroes/*.webp detoures
+knight.png
+mage.png
+thief.jpg
+paladin.jpg
+cheater.jpg
