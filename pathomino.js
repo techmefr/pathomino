@@ -41,7 +41,7 @@ class Pathomino extends React.Component {
     grid:null, hand:[], placed:[], selPiece:null, rot:0, ghost:null, executing:false, dragging:false, dragXY:null,
     enemy:null, deck:[], discard:[], chand:[], csel:[], spadeRed:0, log:'', hoverCard:null, busy:false, floats:[],
     unlocked:[], best:0, lastBoss:'', combatPhase:'', newUnlock:null, jokers:[], weapon:null, shop:null, justPlaced:[], defeating:false, hitFlash:0, combatSeq:0,
-    showTuto:false, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false,
+    showTuto:false, tutoStage:null, muted:false, drawsLeft:3, discardsLeft:3, enemyTurns:0, charIdx:0, poisoned:false,
     portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false,
     cheatArmed:false, cheatUsed:false
   };
@@ -95,8 +95,8 @@ class Pathomino extends React.Component {
     }catch(_e){}
   }
   toggleMute(){ const muted=!this.state.muted; try{ localStorage.setItem('pm_muted', muted?'1':'0'); }catch(_e){} this.setState({muted}); if(!muted) this.sfx('select'); }
-  openTuto(){ this.setState({showTuto:true}); }
-  closeTuto(){ try{ localStorage.setItem('pm_tuto','1'); }catch(_e){} this.setState({showTuto:false}); }
+  openTuto(){ this.setState({tutoStage:'plan'}); }
+  closeTuto(){ const stage=this.state.tutoStage||'plan'; try{ localStorage.setItem('pm_tuto_'+stage,'1'); if(stage==='plan') localStorage.setItem('pm_tuto','1'); }catch(_e){} this.setState({tutoStage:null,showTuto:false}); }
 
   componentDidMount(){
     try{
@@ -126,6 +126,14 @@ class Pathomino extends React.Component {
     window.addEventListener('resize', this._resize);
   }
   componentWillUnmount(){ window.removeEventListener('keydown', this._key); window.removeEventListener('mousemove', this._move); window.removeEventListener('mouseup', this._up); window.removeEventListener('touchmove', this._tmove); window.removeEventListener('touchend', this._tend); window.removeEventListener('touchcancel', this._tend); window.removeEventListener('resize', this._resize); }
+  componentDidUpdate(prevProps, prevState){
+    if(prevState.screen !== this.state.screen){
+      const s=this.state.screen;
+      if(['select','plan','combat','shop'].includes(s)){
+        try{ if(localStorage.getItem('pm_tuto_'+s)!=='1') this.setState({tutoStage:s}); }catch(_e){}
+      }
+    }
+  }
   fitScale(baseW, baseH, reservedV){
     const vw=this.state.vw||(typeof window!=='undefined'?window.innerWidth:1280);
     const vh=this.state.vh||(typeof window!=='undefined'?window.innerHeight:800);
@@ -181,8 +189,7 @@ class Pathomino extends React.Component {
     const hand = Array.from({length:ch.pieces}, ()=>this.drawPiece(startKeys));
     this.setState({
       char:charKey, screen:'plan', floor:1, bossIndex:0, bossesBeaten:0, gridN:8, gold:0,
-      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:null, jokers:[], weapon:null, shop:null, hand, poisoned:false, portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false, cheatArmed:false, cheatUsed:false,
-      showTuto:(()=>{ try{ return localStorage.getItem('pm_tuto')!=='1'; }catch(_e){ return true; } })()
+      php:ch.vie, pmax:ch.vie, deck, discard:[], chand:[], csel:[], newUnlock:null, jokers:[], weapon:null, shop:null, hand, poisoned:false, portalA:null, portalB:null, portalUsed:false, portalRecharge:0, selectingPortal:false, cheatArmed:false, cheatUsed:false
     }, ()=> this.genFloor(true));
   }
   rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
@@ -730,7 +737,7 @@ class Pathomino extends React.Component {
         iconSlot('deck', c.pieces, 'Pièces'),
         iconSlot('deck', c.draws, 'Pioches'),
         iconSlot('discard', c.discards, 'Défausses'),
-        h('button',{onClick:(evt)=>{ evt.stopPropagation(); this.setState({showTuto:true}); },
+        h('button',{onClick:(evt)=>{ evt.stopPropagation(); this.setState({tutoStage:'select'}); },
           style:{width:24,height:24,borderRadius:'50%',border:'1px solid #c8bfae',background:'#e8e0d0',cursor:'pointer',
             fontSize:12,fontWeight:700,color:'#8a7f70',alignSelf:'flex-end',marginBottom:2}}, '?')),
       isLocked ? null : h('div',{className:'pm-card__cta'},
@@ -844,21 +851,46 @@ class Pathomino extends React.Component {
         background:'rgba(14,11,9,.8)',border:'1px solid '+clr.line2,color:this.state.muted?clr.mut:clr.gold,fontSize:17,display:'flex',alignItems:'center',justifyContent:'center'}},
       this.state.muted?'\u{1F507}':'\u{1F50A}'); }
   renderTuto(){ const clr=this.C,h=React.createElement;
-    if(!this.state.showTuto || this.state.screen!=='plan') return null;
+    const stage=this.state.tutoStage||(this.state.showTuto&&this.state.screen==='plan'?'plan':null);
+    if(!stage) return null;
     const step=(ic,title,body)=>h('div',{style:{display:'flex',gap:12,alignItems:'flex-start',textAlign:'left',marginBottom:14}},
       h('div',{style:{flexShrink:0,width:34,height:34,borderRadius:8,background:'#0e0b09',border:'1px solid '+clr.line2,display:'flex',alignItems:'center',justifyContent:'center',color:clr.gold}}, ic),
       h('div',null, h('div',{style:{fontSize:13,fontWeight:700,color:clr.text,marginBottom:3}}, title),
         h('div',{style:{fontSize:12,color:clr.mut,lineHeight:1.5}}, body)));
-    const ok=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[0,1]],14,clr.green), h('span',{style:{color:clr.green,fontSize:13,fontWeight:700}}, '✓ reliées (côté)'));
-    const no=h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[1,1]],14,clr.red), h('span',{style:{color:clr.red,fontSize:13,fontWeight:700}}, '✗ non reliées (coin)'));
+    const titles={select:'CHOISIR TON H\u00e9ROS',plan:'COMMENT JOUER',combat:'COMBAT DE CARTES',shop:'LA BOUTIQUE'};
+    const contents={
+      select:[
+        step('\u2694','Choisis ton personnage','Chaque h\u00e9ros a un style unique. Parcours les cartes avec \u2190 \u2192 ou glisse.'),
+        step(this.icon('deck',18,clr.gold),'Pi\u00e8ces de d\u00e9placement','Tu poses des tuiles g\u00e9om\u00e9triques sur la grille pour tracer un chemin vers la sortie.'),
+        step('\u21ba','Pioches','Tu peux piocher des pi\u00e8ces suppl\u00e9mentaires par \u00e9tage (chiffre = pioches disponibles).'),
+        step('\u267b','D\u00e9fausses','En combat tu peux \u00e9changer des cartes — le nombre de fois est limit\u00e9 par combat.')
+      ],
+      plan:[
+        step(this.icon('flag',18,clr.gold),'Trace ton chemin','Relie le D\u00e9part \u00e0 la Cl\u00e9 puis \u00e0 la Porte en posant tes pi\u00e8ces sur la grille.'),
+        step(this.icon('rotate',18,clr.gold),'Pose une pi\u00e8ce','Touche une pi\u00e8ce, vise une case, clique pour la poser. Molette / clic droit / R pour pivoter.'),
+        step('\u26a0','Relie par les c\u00f4t\u00e9s','Les pi\u00e8ces ne se connectent que si elles se touchent par un c\u00f4t\u00e9 \u2014 jamais par un coin.'),
+        h('div',{style:{display:'flex',justifyContent:'center',gap:22,margin:'0 0 16px',padding:'12px',background:'#0c0a09',borderRadius:8,border:'1px solid '+clr.line}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[0,1]],14,clr.green), h('span',{style:{color:clr.green,fontSize:12,fontWeight:700}}, '\u2713 c\u00f4t\u00e9')),
+          h('div',{style:{display:'flex',alignItems:'center',gap:8}}, this.miniCells([[0,0],[1,1]],14,clr.red), h('span',{style:{color:clr.red,fontSize:12,fontWeight:700}}, '\u2717 coin')))
+      ],
+      combat:[
+        step('\u2660','Main de cartes','S\u00e9lectionne 1 \u00e0 5 cartes dans ta main et joue-les pour une combinaison de poker.'),
+        step('\ud83c\udfb2','Combinaisons','Paire, brelan, suite, couleur, full, carr\u00e9, quinte flush \u2014 plus c\'est rare, plus les d\u00e9g\u00e2ts sont \u00e9lev\u00e9s.'),
+        step('\u26a1','Jokers','Les jokers multiplient tes d\u00e9g\u00e2ts selon leurs effets. Ach\u00e8te-en \u00e0 la boutique.'),
+        step('\u2620','Tour ennemi','Apr\u00e8s ta main, l\'ennemi attaque. Tue-le avant qu\'il te vide de PV.')
+      ],
+      shop:[
+        step('\ud83c\udfb2','Jokers','Effets permanents qui boostent tes d\u00e9g\u00e2ts en combat. Priorit\u00e9 si tu en as peu.'),
+        step(this.icon('deck',18,clr.gold),'Pi\u00e8ces','Ajoute des tuiles \u00e0 ta main de d\u00e9placement pour les prochains \u00e9tages.'),
+        step('\u2665','Soins','Nourriture et potions restaurent des PV \u2014 crucial si tu es bas.'),
+        step('\u2702','\u00c9laguer','Retire une carte ou une pi\u00e8ce inutile de ton deck pour l\'am\u00e9liorer.')
+      ]
+    };
     return h('div',{style:{position:'fixed',inset:0,zIndex:450,background:'rgba(5,4,3,.78)',display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:()=>this.closeTuto()},
-      h('div',{onClick:(evt)=>evt.stopPropagation(),style:{width:'100%',maxWidth:420,background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+clr.line,borderRadius:12,padding:'26px 24px',boxShadow:'0 30px 80px rgba(0,0,0,.6)',animation:'pmFade .3s ease'}},
-        h('div',{className:'pm-pixel',style:{fontSize:14,color:clr.gold,textAlign:'center',marginBottom:18}}, 'COMMENT JOUER'),
-        step(this.icon('flag',18,clr.gold),'Trace ton chemin','Relie le Départ à la Clé puis à la Porte en posant tes pièces sur la grille.'),
-        step(this.icon('rotate',18,clr.gold),'Pose une pièce','Touche une pièce, vise une case, clique pour la poser. Molette / clic droit / R pour pivoter.'),
-        step('⚠','Relie par les côtés','Les pièces ne se connectent que si elles se touchent par un côté — jamais par un coin.'),
-        h('div',{style:{display:'flex',justifyContent:'center',gap:22,margin:'6px 0 20px',padding:'12px',background:'#0c0a09',borderRadius:8,border:'1px solid '+clr.line}}, ok, no),
-        this.btn('Compris, jouer →', ()=>this.closeTuto(), {primary:true,wide:true})));
+      h('div',{onClick:(evt)=>evt.stopPropagation(),style:{width:'100%',maxWidth:420,background:'linear-gradient(180deg,#1d1713,#120c0a)',border:'1px solid '+clr.line,borderRadius:12,padding:'26px 24px',boxShadow:'0 30px 80px rgba(0,0,0,.6)',animation:'pmFade .3s ease',maxHeight:'90vh',overflowY:'auto'}},
+        h('div',{className:'pm-pixel',style:{fontSize:14,color:clr.gold,textAlign:'center',marginBottom:18}}, titles[stage]||'AIDE'),
+        ...(contents[stage]||[]),
+        this.btn('Compris \u2192', ()=>this.closeTuto(), {primary:true,wide:true})));
   }
   renderVals(){
     const s=this.state;
