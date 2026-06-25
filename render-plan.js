@@ -32,13 +32,13 @@ Object.assign(Pathomino.prototype, {
       if(isPotion && !placed){ bg='rgba(90,40,160,.2)'; bd='#6a3a9a'; }
       if(isTrap && !placed){ bg='rgba(40,90,40,.25)'; bd='#3a6e3a'; }
       if(inGhost){ bg= gValid? 'rgba(224,165,59,.32)':'rgba(207,80,64,.3)'; bd=gValid?clr.gold2:clr.red; bstyle='solid'; }
-      if(isHole){ bg='#060504'; bd='#1a1512'; bstyle='dashed'; }
+      if(isHole){ bg='#0a0806'; bd=clr.line2; bstyle='dashed'; }
       if(isPortalA||isPortalB){ bd=clr.blue; bstyle='solid'; bg='rgba(111,155,202,.22)'; }
       if(this.state.selectingPortal&&!placed&&!isHole){ bd=clr.blue; bstyle='dashed'; }
       let content=null;
       if(isFood && !placed) content=h('span',{style:{fontSize:cell*.5,color:'#d96060',filter:'drop-shadow(0 0 3px rgba(220,80,80,.5))'}}, '\u2665');
       else if(isPotion && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#a06ad0',filter:'drop-shadow(0 0 3px rgba(160,100,220,.5))'}}, '\u2697');
-      else if(isHole) content=h('span',{style:{fontSize:cell*.45,color:'#2e2520',fontWeight:700}}, '\u00d7');
+      else if(isHole) content=h('span',{style:{fontSize:cell*.6,color:clr.mut,fontWeight:800,lineHeight:1}}, '\u00d7');
       else if(isTrap && !placed) content=h('span',{style:{fontSize:cell*.45,color:'#5a9a5a',filter:'drop-shadow(0 0 3px rgba(80,180,80,.5))'}}, '\u2620');
       else if(isPawn) content=h('span',{style:{position:'relative',fontSize:cell*.6,lineHeight:1,color: pmap[k]?clr.red:clr.mut}}, '\u265F',
         (isKey||isDoor)? h('span',{style:{position:'absolute',right:-cell*.12,bottom:-cell*.12,display:'inline-flex'}}, this.icon(isKey?'key':'door', cell*.3, clr.gold2)) : null);
