@@ -709,52 +709,32 @@ class Pathomino extends React.Component {
 
     const nav=(dir)=>this.setState(s=>({charIdx:((((s.charIdx||0)+dir)%count)+count)%count}));
 
-    const stats=[['Vie',c.vie],['Force',c.force],['Équilibre',c.defense],['Magie',c.magie],['Vitesse',c.vitesse]];
-
-    const statsEl = isLocked ?
-      h('div',{style:{fontSize:13,color:clr.mut,marginTop:12,letterSpacing:'.1em'}}, '?  ?  ?  ?  ?') :
-      h('div',{style:{display:'grid',gridTemplateColumns:'1fr',gap:5,marginTop:14,width:port?260:300}},
-        stats.map(([lab,v])=>{
-          const maxV=lab==='Vie'?120:18;
-          return h('div',{key:lab,style:{display:'flex',alignItems:'center',gap:8,fontSize:12}},
-            h('span',{style:{width:58,color:clr.mut}},lab),
-            h('div',{style:{flex:1,height:5,background:'#0e0b09',borderRadius:3,overflow:'hidden'}},
-              h('div',{style:{height:'100%',width:Math.min(100,(v/maxV)*100)+'%',background:c.color,borderRadius:3,transition:'width .3s'}})),
-            h('span',{style:{width:26,textAlign:'right',color:clr.text,fontWeight:600}}, v));
-        }));
-
     const lockMsg = isLocked ? ('Bats '+entry.need+' boss pour le débloquer') : null;
+    const power = isLocked?'?' : Math.round(k==='mage'?c.magie : k==='voleur'?(c.force+c.magie)/2 : c.force);
+    const statCol=(val,label)=>h('div',{className:'pm-stats__col'},
+      h('div',{className:'pm-stats__val'}, val), h('div',{className:'pm-stats__lbl'}, label));
+    const divider=()=>h('div',{className:'pm-stats__div'});
 
-    // teinte dérivée de la couleur du perso (pour le halo / lueur de la carte)
-    const hex2rgb=(hx)=>{ const num=parseInt(hx.slice(1),16); return [(num>>16)&255,(num>>8)&255,num&255]; };
-    const [rr,gg,bb]=hex2rgb(isLocked?'#8d8377':c.color); const tint=(a)=>`rgba(${rr},${gg},${bb},${a})`;
-
-    const portrait = isLocked ?
-      h('div',{style:{width:'100%',height:port?206:240,borderRadius:8,border:'1px dashed '+clr.line2,background:'#0c0a09',display:'flex',alignItems:'center',justifyContent:'center',fontSize:84,color:clr.mut,filter:'blur(2px)',userSelect:'none'}}, '?') :
-      h('div',{style:{position:'relative',width:'100%',height:port?206:240,borderRadius:8,overflow:'hidden',
-        background:'radial-gradient(120% 92% at 50% 16%, '+tint(0.30)+' 0%, #0e0b09 72%)',
-        border:'1px solid '+tint(0.45),boxShadow:'inset 0 0 30px rgba(0,0,0,.5)',display:'flex',alignItems:'flex-end',justifyContent:'center'}},
-        h('img',{src:'./heroes/'+k+'.webp',alt:c.name,draggable:false,
-          style:{height:'97%',width:'auto',maxWidth:'100%',objectFit:'contain',pointerEvents:'none',
-            filter:'drop-shadow(0 8px 16px rgba(0,0,0,.55))',animation:'pmRise .5s cubic-bezier(.2,.8,.2,1) backwards'}}));
-
+    // carte « trading card » : tout le style statique est en CSS (.pm-card),
+    // seule la couleur du perso reste inline via la variable --c.
     const card = h('div',{
+      className:'pm-card',
+      style:{'--c': isLocked?'#8d8377':c.color},
       onTouchStart:(evt)=>{ this._swipeX=evt.touches[0].clientX; },
-      onTouchEnd:(evt)=>{ const dx=evt.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); },
-      style:{display:'flex',flexDirection:'column',alignItems:'center',gap:8,padding:port?'14px 14px':'16px 18px',
-        background:'linear-gradient(180deg,#211c18,#161210)',border:'1px solid '+(isLocked?clr.line:c.color),borderRadius:12,
-        boxShadow:isLocked?'none':'0 12px 30px '+tint(0.18)+', inset 0 1px 0 rgba(255,255,255,.05)',
-        width:port?290:320,animation:'pmFade .3s ease',transition:'border-color .3s,box-shadow .3s'}},
-      portrait,
-      h('div',{className:'pm-pixel',style:{fontSize:15,color:isLocked?clr.mut:c.color,textShadow:isLocked?'none':'0 2px 0 rgba(0,0,0,.55)',marginTop:2}}, isLocked?'???':c.name),
-      isLocked? null : h('div',{style:{fontSize:9,letterSpacing:'.2em',color:clr.mut}}, c.tag),
-      lockMsg ?
-        h('div',{style:{fontSize:12,color:clr.mut,fontStyle:'italic',textAlign:'center'}}, lockMsg) :
-        h('div',{style:{fontSize:12.5,color:clr.mut,textAlign:'center',lineHeight:1.4,minHeight:34}}, c.desc),
-      statsEl,
-      isLocked ? null : h('div',{style:{marginTop:6,width:'100%'}},
-        this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true}))
-    );
+      onTouchEnd:(evt)=>{ const dx=evt.changedTouches[0].clientX-(this._swipeX||0); if(Math.abs(dx)>40) nav(dx<0?1:-1); }},
+      h('div',{className:'pm-card__panel'},
+        h('div',{className:'pm-card__frame'+(isLocked?' pm-card__frame--locked':'')}),
+        isLocked
+          ? h('div',{className:'pm-card__locked'}, '?')
+          : h('img',{className:'pm-card__img', src:'./heroes/'+k+'.webp', alt:c.name, draggable:false})),
+      h('div',{className:'pm-card__body'},
+        h('div',{className:'pm-card__tag'}, isLocked?'? BOSS':c.tag),
+        h('div',{className:'pm-card__name'}, isLocked?'???':c.name),
+        h('div',{className:'pm-card__desc'}, lockMsg||c.desc)),
+      h('div',{className:'pm-stats'+(isLocked?' pm-stats--locked':'')},
+        statCol(isLocked?'?':c.vie,'PV'), divider(), statCol(power,'PUISSANCE'), divider(), statCol(isLocked?'?':c.vitesse,'VITESSE')),
+      isLocked ? null : h('div',{className:'pm-card__cta'},
+        this.btn('Choisir '+c.name+' →', ()=>this.startRun(k), {primary:true,wide:true})));
 
     const dots = h('div',{style:{display:'flex',gap:8,justifyContent:'center',marginTop:14}},
       entries.map((_,i)=>h('div',{key:i,onClick:()=>this.setState({charIdx:i}),
